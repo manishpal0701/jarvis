@@ -37,13 +37,17 @@ def processCommand(command):
 if __name__ == "__main__":
     speak("Initializing Jarvis")
 
+    # Calibrate microphone once at startup
+    print("Calibrating microphone for ambient noise...")
+    with sr.Microphone() as source:
+        r.adjust_for_ambient_noise(source, duration=1)
+    print("Calibration complete. Listening for wake word...")
+
     while True:
         try:
             # Listen for wake word
             with sr.Microphone() as source:
                 print("Listening for wake word...")
-                r.adjust_for_ambient_noise(source, duration=1)
-
                 audio = r.listen(
                     source,
                     timeout=5,
