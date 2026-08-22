@@ -1,0 +1,11 @@
+{
+  "planning_time": 0.0,
+  "llm_generation_time": 0.0,
+  "validation_time": 0.0,
+  "repair_time": 0.0,
+  "disk_write_time": 0.0,
+  "streaming_time": 0.0,
+  "build_and_install_time": 0.0,
+  "preview_startup_time": 0.0,
+  "total_time": 1678.2543473999995
+}

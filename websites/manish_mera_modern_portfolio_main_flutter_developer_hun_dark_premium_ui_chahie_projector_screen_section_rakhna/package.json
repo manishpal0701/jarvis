@@ -1,0 +1,18 @@
+{
+  "name": "Your Project Name",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "tailwindcss": "^2.2.19",
+    "autoprefixer": "^9.7.3",
+    "postcss": "^8.2.15"
+  },
+  "devDependencies": {
+    "next": "^10.0.0"
+  }
+}

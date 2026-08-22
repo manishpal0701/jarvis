@@ -1,0 +1,56 @@
+{
+    "mem_user_20260814_175145_ea38b8": {
+        "id": "mem_user_20260814_175145_ea38b8",
+        "type": "user",
+        "content": "User preference: preferred_editor = VSCode",
+        "source": "user_preference",
+        "created_at": "2026-08-14T17:51:45",
+        "updated_at": "2026-08-14T17:51:45",
+        "importance": 0.9,
+        "project": null,
+        "task_id": null,
+        "tags": [
+            "user_preference",
+            "preferred_editor"
+        ],
+        "metadata": {
+            "preference_key": "preferred_editor",
+            "preference_value": "VSCode"
+        }
+    },
+    "mem_user_20260814_175145_9ff61b": {
+        "id": "mem_user_20260814_175145_9ff61b",
+        "type": "user",
+        "content": "User preference: mode = dark",
+        "source": "user_preference",
+        "created_at": "2026-08-14T17:51:45",
+        "updated_at": "2026-08-14T17:51:45",
+        "importance": 0.9,
+        "project": null,
+        "task_id": null,
+        "tags": [
+            "user_preference",
+            "mode"
+        ],
+        "metadata": {
+            "preference_key": "mode",
+            "preference_value": "dark"
+        }
+    },
+    "mem_project_20260814_193706_ea9c88": {
+        "id": "mem_project_20260814_193706_ea9c88",
+        "type": "project",
+        "content": "My current project is Jarvis AI",
+        "source": "user_directive",
+        "created_at": "2026-08-14T19:37:06",
+        "updated_at": "2026-08-14T19:37:06",
+        "importance": 0.8,
+        "project": "Jarvis AI",
+        "task_id": null,
+        "tags": [
+            "project",
+            "project"
+        ],
+        "metadata": {}
+    }
+}

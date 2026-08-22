@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis Coding Workspace</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="workspace-container">
+        <!-- Minimalist IDE Top Navbar -->
+        <header class="ide-header">
+            <div class="header-left">
+                <div class="brand">
+                    <span class="brand-icon">⚡</span>
+                    <span class="brand-title">JARVIS</span>
+                    <span class="brand-sub">WORKSPACE</span>
+                </div>
+                <div class="file-tabs-bar" id="fileTabsContainer">
+                    <div class="file-path-badge active" id="filePathBadge">
+                        <span class="folder-icon">📁</span>
+                        <span id="filePath">main.py</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="lang-badge" id="langBadge">Python</div>
+                <div class="status-pill" id="statusPill">
+                    <span class="status-dot pulsing"></span>
+                    <span class="status-text" id="statusText">Jarvis is ready</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Visual Code Editor Area -->
+        <main class="editor-viewport">
+            <div class="editor-window">
+                <div class="line-numbers" id="lineNumbers">1</div>
+                <pre class="code-pre"><code class="code-display" id="codeDisplay"># Jarvis visual coding workspace initialized.
+# Generated code will appear here live...</code></pre>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

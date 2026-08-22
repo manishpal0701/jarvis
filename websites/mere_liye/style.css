@@ -1,0 +1,24 @@
+:root {
+  --primary-color: #212121;
+  --secondary-color: #333;
+  --background-color: #f9f9f9;
+  --text-color: #000;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+.hero {
+  background-image: linear-gradient(to bottom, var(--primary-color), var(--primary-color));
+  background-size:

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="6.0"
+    ExtensionBundleId="com.jarvis.premiere.bridge"
+    ExtensionBundleVersion="2.0.0"
+    ExtensionBundleName="Jarvis Bridge">
+
+  <ExtensionList>
+    <Extension Id="com.jarvis.premiere.bridge.panel" Version="2.0.0"/>
+  </ExtensionList>
+
+  <ExecutionEnvironment>
+    <HostList>
+      <!-- PPRO = Adobe Premiere Pro. [0.0, 99.9] covers 2018 through 2025+ -->
+      <Host Name="PPRO" Version="[0.0,99.9]"/>
+    </HostList>
+    <LocaleList>
+      <Locale Code="All"/>
+    </LocaleList>
+    <RequiredRuntimeList>
+      <!-- CSXS 9.0 is correct for Premiere Pro 2021 (v15.x). Do NOT use 6.0. -->
+      <RequiredRuntime Name="CSXS" Version="9.0"/>
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+
+  <DispatchInfoList>
+    <Extension Id="com.jarvis.premiere.bridge.panel">
+      <DispatchInfo>
+        <Resources>
+          <MainPath>./index.html</MainPath>
+          <!-- ScriptPath: Premiere Pro auto-loads this JSX into ExtendScript on panel open -->
+          <ScriptPath>./jsx/bridge.jsx</ScriptPath>
+          <CEFCommandLine>
+            <!-- Required for Node.js require("http") inside the CEP browser context -->
+            <Parameter>--enable-nodejs</Parameter>
+            <!-- Allow file:// resource access from the panel -->
+            <Parameter>--allow-file-access-from-files</Parameter>
+            <!-- Disable CORS for localhost bridge communication -->
+            <Parameter>--disable-web-security</Parameter>
+          </CEFCommandLine>
+        </Resources>
+        <Lifecycle>
+          <!-- AutoVisible=true: panel loads immediately when Premiere starts -->
+          <AutoVisible>true</AutoVisible>
+          <StartOn>
+            <Event>applicationActivate</Event>
+            <Event>com.adobe.csxs.events.ApplicationActivate</Event>
+          </StartOn>
+        </Lifecycle>
+        <UI>
+          <!--
+            CRITICAL FIX: Must be "Panel" NOT "Custom".
+            Premiere Pro 2021 does not load extensions with Type=Custom.
+            Panel type ensures the extension initializes and shows in Window > Extensions.
+          -->
+          <Type>Panel</Type>
+          <Menu>
+            <MenuItem>Jarvis Bridge</MenuItem>
+          </Menu>
+          <Geometry>
+            <Size>
+              <!-- Minimal 200x50 panel – visible but unobtrusive -->
+              <Height>50</Height>
+              <Width>200</Width>
+            </Size>
+            <MinSize>
+              <Height>50</Height>
+              <Width>200</Width>
+            </MinSize>
+          </Geometry>
+          <Icons/>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+
+</ExtensionManifest>

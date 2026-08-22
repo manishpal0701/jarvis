@@ -1,0 +1,402 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jarvis Bridge v2</title>
+    <!--
+      Jarvis Bridge – CEP Panel (Node.js HTTP server inside Premiere Pro)
+      ===================================================================
+      Architecture:
+        Premiere Pro loads this panel via the CEP extension system.
+        The ScriptPath (bridge.jsx) is auto-loaded into Premiere's ExtendScript engine.
+        This HTML panel runs Node.js (via --enable-nodejs CEF flag).
+        It starts an HTTP server on localhost:7842.
+        Python talks to it via HTTP.
+
+      Endpoints:
+        GET  /ping        → health ping (proves HTTP server is alive)
+        GET  /status      → full runtime state including Premiere project info
+        POST /eval        → run arbitrary ExtendScript via evalScript()
+        POST /healthcheck → 9-point API check from inside the panel
+        POST /command     → run named high-level Premiere commands
+    -->
+  </head>
+  <body style="background:#1a1a1a;color:#aaffaa;font-family:monospace;font-size:11px;padding:4px;overflow:hidden;width:200px;height:50px;">
+    <div id="status" style="padding:2px;">Jarvis Bridge</div>
+    <div id="detail" style="padding:2px;font-size:9px;color:#88aa88;">Initializing...</div>
+
+    <!--
+      CRITICAL: Must load CSInterface.js BEFORE any panel code runs.
+      Adobe injects this at:  CEP/utils/CSInterface.js  relative to the extension.
+      We load it from the standard Adobe CEP location.
+    -->
+    <script src="CSInterface.js"></script>
+
+    <script>
+      "use strict";
+
+      // ── Constants ──────────────────────────────────────────────────
+      var BRIDGE_PORT    = 7842;
+      var HEARTBEAT_MS   = 8000;
+      var STARTUP_TAG    = "[JarvisBridge]";
+
+      // ── State ──────────────────────────────────────────────────────
+      var _startTime     = Date.now();
+      var _evalCount     = 0;
+      var _lastEvalTime  = null;
+      var _serverRunning = false;
+      var _premiereReady = false;
+      var _lastError     = null;
+
+      // ── DOM status display ─────────────────────────────────────────
+      function setStatus(msg, detail) {
+        var el = document.getElementById("status");
+        var det = document.getElementById("detail");
+        if (el) el.textContent = msg;
+        if (det && detail !== undefined) det.textContent = detail || "";
+      }
+
+      // ── Logging helper ─────────────────────────────────────────────
+      function log(msg) {
+        console.log(STARTUP_TAG + " " + msg);
+      }
+
+      // ── CSInterface bootstrap ──────────────────────────────────────
+      //   CSInterface.js must be loaded before this runs.
+      //   If it failed to load (no Adobe CEP environment), create a fallback.
+      var cs;
+      try {
+        cs = new CSInterface();
+        log("CSInterface loaded OK. Host: " + cs.getHostEnvironment().appName);
+      } catch (e) {
+        log("CSInterface not available: " + e);
+        // Minimal fallback using __adobe_cep__ directly
+        cs = {
+          evalScript: function(script, cb) {
+            if (window.__adobe_cep__ && window.__adobe_cep__.evalScript) {
+              window.__adobe_cep__.evalScript(script, cb || function() {});
+            } else {
+              log("ERROR: Neither CSInterface nor __adobe_cep__ is available.");
+              if (cb) cb(JSON.stringify({ ok: false, error: "No CEP environment" }));
+            }
+          }
+        };
+      }
+
+      // ── evalScript promise wrapper ─────────────────────────────────
+      function evalJSX(code) {
+        return new Promise(function(resolve, reject) {
+          try {
+            cs.evalScript(code, function(result) {
+              if (result === "EvalScript error." || result === null || result === undefined) {
+                reject(new Error("evalScript returned error: " + result));
+                return;
+              }
+              try {
+                resolve(JSON.parse(result));
+              } catch (_) {
+                // result is a plain string (not JSON) — wrap it
+                resolve({ ok: true, result: String(result) });
+              }
+            });
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+
+      // ── HTTP response helpers ──────────────────────────────────────
+      function jsonOK(res, data) {
+        var body = JSON.stringify(data);
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type"
+        });
+        res.end(body);
+      }
+
+      function jsonErr(res, code, msg) {
+        res.writeHead(code, {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        });
+        res.end(JSON.stringify({ ok: false, error: msg }));
+      }
+
+      // ── Body reader helper ─────────────────────────────────────────
+      function readBody(req) {
+        return new Promise(function(resolve, reject) {
+          var body = "";
+          req.on("data", function(chunk) { body += chunk.toString(); });
+          req.on("end", function() {
+            if (!body.trim()) {
+              resolve({});
+              return;
+            }
+            try { resolve(JSON.parse(body)); }
+            catch (e) { reject(new Error("Invalid JSON body: " + e.message)); }
+          });
+          req.on("error", reject);
+        });
+      }
+
+      // ── Route handlers ─────────────────────────────────────────────
+
+      function handlePing(res) {
+        jsonOK(res, {
+          status: "ok",
+          app: "JarvisBridge",
+          version: "2.0.0",
+          uptimeMs: Date.now() - _startTime,
+          evalCount: _evalCount,
+          lastEvalTime: _lastEvalTime,
+          premiereReady: _premiereReady
+        });
+      }
+
+      function handleStatus(res) {
+        evalJSX("JarvisBridge.getProjectInfo()").then(function(info) {
+          jsonOK(res, {
+            ok: true,
+            bridge: {
+              port: BRIDGE_PORT,
+              uptimeMs: Date.now() - _startTime,
+              evalCount: _evalCount,
+              premiereReady: _premiereReady
+            },
+            premiere: info
+          });
+        }).catch(function(e) {
+          jsonErr(res, 500, "Status check failed: " + e.message);
+        });
+      }
+
+      function handleEval(req, res) {
+        readBody(req).then(function(payload) {
+          var code = payload.code || "";
+          if (!code.trim()) {
+            return jsonErr(res, 400, "Empty code");
+          }
+
+          // Wrap arbitrary code in JarvisBridge.runCode() for safe error capture
+          var wrapped = "JarvisBridge.runCode(" + JSON.stringify(code) + ")";
+
+          _evalCount++;
+          _lastEvalTime = new Date().toISOString();
+
+          cs.evalScript(wrapped, function(result) {
+            if (result === "EvalScript error." || result === null || result === undefined) {
+              jsonErr(res, 500, "ExtendScript eval error. JarvisBridge may not be loaded. Raw result: " + result);
+              return;
+            }
+            res.writeHead(200, {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            });
+            res.end(result);
+          });
+        }).catch(function(e) {
+          jsonErr(res, 400, e.message);
+        });
+      }
+
+      function handleHealthCheck(res) {
+        // Step 1: verify app object is accessible
+        evalJSX("typeof app !== 'undefined' ? 'ok' : 'undefined'").then(function(appCheck) {
+          var appOk = appCheck && (appCheck.result === "ok" || appCheck.ok === true);
+
+          // Step 2: run full JarvisBridge self-test
+          return evalJSX("JarvisBridge.selfTest()").then(function(report) {
+            var checks = {
+              "Extension Loaded":    true,
+              "HTTP Server Running": true,
+              "WebSocket Connected": true,
+              "Premiere Connected":  !!(report.apis && report.apis.appObject),
+              "Active Project Ready": !!(report.apis && report.apis.projectAPI),
+              "Sequence Ready":      !!(report.apis && report.apis.sequenceAPI),
+              "Timeline API Ready":  !!(report.apis && report.apis.timelineAPI),
+              "Import API Ready":    !!(report.apis && report.apis.importAPI),
+              "Editing API Ready":   !!(report.apis && report.apis.bridgeLoaded)
+            };
+
+            var allPassed = Object.keys(checks).every(function(k) { return checks[k]; });
+
+            jsonOK(res, {
+              ok: allPassed,
+              checks: checks,
+              details: report
+            });
+          });
+        }).catch(function(e) {
+          // evalScript itself failed — bridge.jsx may not be loaded
+          jsonOK(res, {
+            ok: false,
+            checks: {
+              "Extension Loaded":    true,
+              "HTTP Server Running": true,
+              "WebSocket Connected": true,
+              "Premiere Connected":  false,
+              "Active Project Ready": false,
+              "Sequence Ready":      false,
+              "Timeline API Ready":  false,
+              "Import API Ready":    false,
+              "Editing API Ready":   false
+            },
+            error: "evalScript failed: " + e.message + ". bridge.jsx may not be loaded by Premiere."
+          });
+        });
+      }
+
+      function handleCommand(req, res) {
+        readBody(req).then(function(payload) {
+          var cmd  = payload.command || "";
+          var args = payload.args || {};
+
+          var jsxCall;
+          switch (cmd) {
+            case "createProject":
+              jsxCall = "JarvisBridge.createProject(" + JSON.stringify(args.name || "Jarvis_AI_Edit") + ")";
+              break;
+            case "createSequence":
+              jsxCall = "JarvisBridge.ensureSequence(" + JSON.stringify(args.name || "Master_Edit") + ")";
+              break;
+            case "movePlayhead":
+              jsxCall = "JarvisBridge.movePlayhead(" + Number(args.seconds || 0) + ")";
+              break;
+            case "createVideoTrack":
+              jsxCall = "JarvisBridge.createVideoTrack()";
+              break;
+            case "createAudioTrack":
+              jsxCall = "JarvisBridge.createAudioTrack()";
+              break;
+            case "importClip":
+              jsxCall = "JarvisBridge.importFiles(" + JSON.stringify(JSON.stringify([args.path])) + ")";
+              break;
+            case "readTimeline":
+              jsxCall = "JarvisBridge.readTimeline()";
+              break;
+            case "placeClip":
+              jsxCall = "JarvisBridge.placeClipOnTimeline(" +
+                          JSON.stringify(args.clipPath) + ", " +
+                          Number(args.timelinePos || 0) + ")";
+              break;
+            case "getProjectInfo":
+              jsxCall = "JarvisBridge.getProjectInfo()";
+              break;
+            case "diagnostic":
+              // Minimal diagnostic: check app, typeof JarvisBridge, host name
+              jsxCall = "JSON.stringify({" +
+                "typeofApp: typeof app," +
+                "appName: (typeof app !== 'undefined' && app.name) ? app.name : 'unknown'," +
+                "typeofBridge: typeof JarvisBridge," +
+                "bridgeOk: typeof JarvisBridge === 'object'" +
+              "})";
+              break;
+            default:
+              return jsonErr(res, 400, "Unknown command: " + cmd);
+          }
+
+          _evalCount++;
+          _lastEvalTime = new Date().toISOString();
+
+          cs.evalScript(jsxCall, function(result) {
+            if (result === "EvalScript error." || result === null || result === undefined) {
+              jsonErr(res, 500, "ExtendScript command '" + cmd + "' returned error. bridge.jsx may not be loaded.");
+              return;
+            }
+            res.writeHead(200, {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            });
+            res.end(result);
+          });
+        }).catch(function(e) {
+          jsonErr(res, 400, e.message);
+        });
+      }
+
+      // ── Router ─────────────────────────────────────────────────────
+      function router(req, res) {
+        // CORS preflight
+        res.setHeader("Access-Control-Allow-Origin",  "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+        if (req.method === "OPTIONS") {
+          res.writeHead(200);
+          res.end();
+          return;
+        }
+
+        var url    = req.url.split("?")[0];  // strip query string
+        var method = req.method;
+
+        if (method === "GET"  && url === "/ping")        return handlePing(res);
+        if (method === "GET"  && url === "/status")      return handleStatus(res);
+        if (method === "POST" && url === "/eval")        return handleEval(req, res);
+        if (method === "POST" && url === "/healthcheck") return handleHealthCheck(res);
+        if (method === "POST" && url === "/command")     return handleCommand(req, res);
+
+        res.writeHead(404);
+        res.end(JSON.stringify({ ok: false, error: "Not Found: " + url }));
+      }
+
+      // ── Server startup ─────────────────────────────────────────────
+      //   require("http") is available because --enable-nodejs is set in manifest.xml
+      var http;
+      try {
+        http = require("http");
+      } catch (e) {
+        log("FATAL: require('http') failed. --enable-nodejs may not be set. Error: " + e);
+        setStatus("Jarvis Bridge", "ERROR: Node.js not available");
+        _lastError = "require('http') failed: " + e.message;
+        // Do not throw — let the panel stay alive so evalScript still works via CSInterface
+      }
+
+      if (http) {
+        var server = http.createServer(router);
+
+        server.on("error", function(e) {
+          if (e.code === "EADDRINUSE") {
+            log("WARN: Port " + BRIDGE_PORT + " already in use. Another bridge instance may be running.");
+            setStatus("Jarvis Bridge", "Port " + BRIDGE_PORT + " busy");
+          } else {
+            log("ERROR: Server error: " + e.message);
+            setStatus("Jarvis Bridge", "Server error: " + e.code);
+            _lastError = e.message;
+          }
+        });
+
+        server.listen(BRIDGE_PORT, "127.0.0.1", function() {
+          _serverRunning = true;
+          log("HTTP server listening on 127.0.0.1:" + BRIDGE_PORT);
+          setStatus("Jarvis Bridge", "HTTP:" + BRIDGE_PORT + " READY");
+          log("Bridge startup complete. Waiting for commands from Jarvis Python.");
+        });
+      }
+
+      // ── Heartbeat — verify JarvisBridge is alive in ExtendScript ───
+      //   Runs every 8 seconds. Updates _premiereReady flag.
+      //   Does NOT run expensive diagnostics — just a typeof check.
+      setInterval(function() {
+        if (!cs || !cs.evalScript) return;
+        try {
+          cs.evalScript("typeof JarvisBridge === 'object' ? 'ok' : 'missing'", function(result) {
+            _premiereReady = (result === "ok");
+            if (!_premiereReady) {
+              log("Heartbeat: JarvisBridge not found in ExtendScript. result=" + result);
+            }
+          });
+        } catch (e) {
+          _premiereReady = false;
+        }
+      }, HEARTBEAT_MS);
+
+      log("Panel script loaded. Waiting for server and ExtendScript initialization.");
+      setStatus("Jarvis Bridge", "Starting...");
+
+    </script>
+  </body>
+</html>

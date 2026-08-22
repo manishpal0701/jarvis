@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #f1c40f;
+  --background-color: #f9f9f9;
+  --text-color: #333;
+  --font-size: 16px;
+  --font-family: 'Montserrat', sans-serif;
+}
+
+body {
+  @apply bg-primary-color;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+}
+
+.container {
+  @apply max-w-5xl mx-auto p-4;
+}
+
+.hero {
+  @apply bg-secondary-color;
+  padding: 20vh;
+  text-align: center;
+}
+
+.hero img {
+  @apply w-full h-full object-cover;
+}
+
+.about {
+  @apply bg-white;
+  padding: 20px;
+}
+
+.skills {
+  @apply bg-white;
+  padding: 20px;
+}
+
+.projects {
+  @apply bg-white;
+  padding: 20px;
+}
+
+.experience {
+  @apply bg-white;
+  padding: 20px;
+}
+
+.contact {
+  @apply bg-white;
+  padding: 20px;
+}
+
+.footer {
+  @apply bg-primary-color;
+  padding: 10px;
+  text-align: center;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .container {
+    @apply max-w-md;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    @apply max-w-sm;
+  }
+}
