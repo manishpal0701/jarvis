@@ -1,10 +1,16 @@
 
 import os
-from video_editing.analyzers.video_analyzer import VideoAnalyzer
 
 class ReverseEngineeringEngine:
     def __init__(self):
-        self.analyzer = VideoAnalyzer()
+        self._analyzer = None
+
+    @property
+    def analyzer(self):
+        if self._analyzer is None:
+            from video_editing.analyzers.video_analyzer import VideoAnalyzer
+            self._analyzer = VideoAnalyzer()
+        return self._analyzer
 
     def analyze_reference(self, reference_path):
         """

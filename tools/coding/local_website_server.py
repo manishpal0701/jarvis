@@ -30,8 +30,7 @@ class LocalWebsiteServer:
     _lock = threading.Lock()
 
     def __init__(self):
-        self.server = None
-        self.server_thread = None
+        self.servers = []
         self.port = 0
         self.project_dir = ""
         self.is_running = False
@@ -44,40 +43,46 @@ class LocalWebsiteServer:
             return cls._instance
 
     def start_preview(self, project_dir: str, port: int = None, open_browser: bool = True) -> tuple[str, int]:
-        """
-        Serves project_dir (or project_dir/dist if present) on a dynamic local port and opens browser preview.
-        Returns tuple of (url, port).
-        """
+        dist_path = os.path.join(project_dir, "dist")
+        serve_dir = dist_path if os.path.exists(dist_path) else project_dir
+
+        target_port = port or find_free_port(5173)
+
+        handler = lambda *args, **kwargs: DirectoryHTTPRequestHandler(*args, directory=serve_dir, **kwargs)
+
+        class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+            allow_reuse_address = True
+            daemon_threads = True
+
+        try:
+            server = ThreadedTCPServer(('127.0.0.1', target_port), handler)
+        except Exception:
+            target_port = find_free_port(target_port + 1)
+            server = ThreadedTCPServer(('127.0.0.1', target_port), handler)
+
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        server_thread.start()
+
         with self._lock:
-            if self.is_running:
-                self.stop_preview()
-
-            dist_path = os.path.join(project_dir, "dist")
-            serve_dir = dist_path if os.path.exists(dist_path) else project_dir
-
+            self.servers.append(server)
+            self.port = target_port
             self.project_dir = serve_dir
-            self.port = port or find_free_port(5173)
-
-            handler = lambda *args, **kwargs: DirectoryHTTPRequestHandler(*args, directory=serve_dir, **kwargs)
-            self.server = socketserver.TCPServer(('127.0.0.1', self.port), handler)
-
-            self.server_thread = threading.Thread(target=self.server.serve_forever, daemon=True)
-            self.server_thread.start()
             self.is_running = True
-            time.sleep(0.3)
 
-            url = f"http://127.0.0.1:{self.port}"
-            if open_browser:
+        url = f"http://127.0.0.1:{target_port}"
+        if open_browser:
+            try:
                 webbrowser.open(url)
-            return url, self.port
+            except Exception:
+                pass
+        return url, target_port
 
     def stop_preview(self):
         with self._lock:
-            if self.server:
+            for s in self.servers:
                 try:
-                    self.server.shutdown()
-                    self.server.server_close()
+                    s.server_close()
                 except Exception:
                     pass
-                self.server = None
-                self.is_running = False
+            self.servers.clear()
+            self.is_running = False

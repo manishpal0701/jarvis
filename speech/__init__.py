@@ -11,9 +11,25 @@ def shutdown() -> None:
     """Shuts down the global speech engine."""
     _engine.shutdown()
 
-def speak(text: str, wait: bool = True) -> None:
+def speak(
+    text: str,
+    wait: bool = True,
+    callback = None,
+    single_response: bool = True,
+    speech_id = None,
+    request_id = None,
+    **kwargs
+):
     """Speaks the given text using the global speech engine."""
-    _engine.speak(text, wait=wait)
+    return _engine.speak(
+        text,
+        wait=wait,
+        callback=callback,
+        single_response=single_response,
+        speech_id=speech_id,
+        request_id=request_id,
+        **kwargs
+    )
 
 def is_speaking() -> bool:
     """Returns whether the speech engine is currently speaking or has queued speech."""
@@ -22,3 +38,4 @@ def is_speaking() -> bool:
 def get_engine() -> SpeechEngine:
     """Returns the global speech engine instance."""
     return _engine
+

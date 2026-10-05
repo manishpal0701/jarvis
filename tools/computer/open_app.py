@@ -1,44 +1,25 @@
-import webbrowser
+"""
+tools/computer/open_app.py
+Dynamic Application Launcher Bridge for Jarvis AI Assistant.
+Forwards all open/launch commands to AppLauncher for dynamic resolution.
+"""
 
-open_app = { 
-    "open github": "https://github.com",
-    "open google": "https://google.com", 
-    "open youtube": "https://youtube.com",
-    "open spotify": "https://spotify.com",
-    "open twitter": "https://twitter.com",
-    "open facebook": "https://facebook.com",
-    "open instagram": "https://instagram.com",
-    "open linkedin": "https://linkedin.com",
-    "open reddit": "https://reddit.com",
-    "open netflix": "https://netflix.com",
-    "open amazon": "https://amazon.com",
-    "open stackoverflow": "https://stackoverflow.com",
-    "open gmail": "https://mail.google.com",
-    "open yahoo": "https://mail.yahoo.com",
-    "open outlook": "https://outlook.com",
-    "open discord": "https://discord.com",
-    "open slack": "https://slack.com",
-    "open zoom": "https://zoom.us",
-    "open skype": "https://skype.com",
-    "open teams": "https://teams.microsoft.com",
-    "open trello": "https://trello.com",
-    "open code": "https://code.visualstudio.com",   
-    "open pycharm": "https://www.jetbrains.com/pycharm/",
-    "open vscode": "https://code.visualstudio.com",
-    "open sublime": "https://www.sublimetext.com",
-    "open notepad": "notepad.exe",
-    "open calculator": "calc.exe",
-    "open command prompt": "cmd.exe",
-    "open powershell": "powershell.exe",
-    "open control panel": "control.exe",   
-    "open task manager": "taskmgr.exe",
-    "open file explorer": "explorer.exe",
-    "open settings": "ms-settings:",
-    "open android studio": "https://developer.android.com/studio",
-    "open photoshop": "https://www.adobe.com/products/photoshop.html",
-    "open premiere pro": "https://www.adobe.com/products/premiere.html",
-    "open filemanager": "explorer.exe",
-    "open antigravity": "https://www.youtube.com/watch?v=QH2-TGUlwu4",
-    "open whatsapp": "https://web.whatsapp.com",
-    "open camera": "ms-apps:camera://"
-}
+from tools.computer.app_launcher import AppLauncher
+
+def open_application(command: str) -> tuple[bool, str]:
+    """
+    Dynamically launches an application based on the user's natural command.
+    """
+    return AppLauncher.launch_app(command)
+
+# Backwards compatibility dictionary wrapper
+class DynamicAppDict(dict):
+    def __getitem__(self, key):
+        success, msg = AppLauncher.launch_app(key)
+        return msg
+
+    def __contains__(self, key):
+        target, _ = AppLauncher.resolve_app(key)
+        return target is not None
+
+open_app = DynamicAppDict()

@@ -92,7 +92,7 @@ class TestMemoryLayer(unittest.TestCase):
 
     def test_semantic_memory(self):
         sem = SemanticMemory(writer=self.writer, retriever=self.retriever)
-        mem_id, _ = sem.add_fact("Jarvis uses Ollama llama3.2 locally for AI responses", tags=["ai", "ollama"])
+        mem_id, _ = sem.add_fact("Jarvis uses Ollama qwen3:8b locally for AI responses", tags=["ai", "ollama"])
         self.assertIsNotNone(mem_id)
 
         facts = sem.search_facts("Ollama")

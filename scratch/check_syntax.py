@@ -1,22 +1,15 @@
 import ast
-import os
 
-files = [
-    "ask_ollama.py",
-    "chat_responses.py",
-    "config.py",
-    "face_recognize.py",
-    "main.py",
-    "memory.py",
-    "monitor.py",
-    "music_libary.py",
-    "open_app.py"
-]
+with open('tools/app_builder/node_generator.py', 'r', encoding='utf-8') as f:
+    code = f.read()
 
-for file in files:
-    try:
-        with open(file, "r") as f:
-            ast.parse(f.read())
-        print(f"{file}: Syntax OK")
-    except Exception as e:
-        print(f"{file}: Syntax Error - {e}")
+try:
+    ast.parse(code)
+    print("AST Parse Successful!")
+except SyntaxError as e:
+    print(f"SyntaxError on line {e.lineno}, col {e.offset}: {e.msg}")
+    lines = code.splitlines()
+    start = max(0, e.lineno - 10)
+    end = min(len(lines), e.lineno + 10)
+    for idx in range(start, end):
+        print(f"{idx+1}: {lines[idx]}")

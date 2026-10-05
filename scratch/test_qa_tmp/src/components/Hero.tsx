@@ -1,0 +1,1 @@
+export const Hero = () => <div>150+ Enterprise Clients 99.99% Uptime</div>;

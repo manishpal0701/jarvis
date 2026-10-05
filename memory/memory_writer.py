@@ -40,11 +40,14 @@ class MemoryWriter:
 
         record = {
             "id": mem_id,
+            "user_id": "user_owner",
             "type": memory_type,
             "content": content.strip(),
             "source": source or "system",
+            "confidence": 1.0,
             "created_at": now_str,
             "updated_at": now_str,
+            "last_used_at": now_str,
             "importance": calc_importance,
             "project": project,
             "task_id": task_id,
@@ -78,6 +81,9 @@ class MemoryWriter:
         if metadata is not None:
             record["metadata"].update(metadata)
 
-        record["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        now_str = time.strftime("%Y-%m-%dT%H:%M:%S")
+        record["updated_at"] = now_str
+        record["last_used_at"] = now_str
         success = self.store.save_record(record)
         return success, "Memory updated successfully." if success else "Failed to update memory."
+

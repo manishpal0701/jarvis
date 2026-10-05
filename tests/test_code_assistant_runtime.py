@@ -154,7 +154,7 @@ class TestCodeAssistantRuntime(unittest.TestCase):
             with open(os.path.join(temp_dir, "src", "App.tsx"), "w", encoding="utf-8") as f:
                 f.write("export default function App() { return <div className='p-8 bg-slate-900 text-white'><h1>Runtime Test</h1></div>; }")
             with open(os.path.join(temp_dir, "src", "index.css"), "w", encoding="utf-8") as f:
-                f.write('@import "tailwindcss";')
+                f.write("@tailwind base;\n@tailwind components;\n@tailwind utilities;\n")
 
             is_ok, err = LocalPreviewDeployer.execute_production_build(temp_dir)
             self.assertTrue(is_ok, f"Real npm build failed: {err}")

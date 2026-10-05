@@ -20,15 +20,22 @@ class ModelRouter:
         "website_design": "qwen3:8b",
         "website_planning": "qwen3:8b",
         "ux_reasoning": "qwen3:8b",
+        "general_conversation": "qwen3:8b",
+        "follow_up_conversation": "qwen3:8b",
+        "general_qa": "qwen3:8b",
+        "general_question": "qwen3:8b",
+        "explanation": "qwen3:8b",
+        "hinglish_conversation": "qwen3:8b",
+        "conversation": "qwen3:8b",
         "website_generation": "qwen3:4b-instruct",
         "coding": "qwen3:4b-instruct",
         "code_review": "qwen3:4b-instruct",
         "debugging": "qwen3:4b-instruct",
+        "auto_repair": "qwen3:4b-instruct",
         "website_repair": "qwen3:4b-instruct",
         "intent_classification": "phi4-mini:latest",
         "light_routing": "phi4-mini:latest",
-        "general_question": "llama3.2:latest",
-        "conversation": "llama3.2:latest"
+        "lightweight_routing": "phi4-mini:latest"
     }
 
     INSTALLED_MODELS = [
@@ -57,7 +64,7 @@ class ModelRouter:
 
     def get_model_for_task(self, task_type: str) -> str:
         """Returns the appropriate Ollama model identifier for a given task type."""
-        return self.MODEL_MAPPING.get(task_type.lower(), "qwen3:4b-instruct")
+        return self.MODEL_MAPPING.get(task_type.lower(), "qwen3:8b")
 
     def get_installed_models(self) -> List[str]:
         """Returns list of active installed Ollama models."""

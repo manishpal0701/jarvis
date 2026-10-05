@@ -5,8 +5,8 @@
         "content": "User preference: preferred_editor = VSCode",
         "source": "user_preference",
         "created_at": "2026-08-14T17:51:45",
-        "updated_at": "2026-08-14T17:51:45",
-        "importance": 0.9,
+        "updated_at": "2026-09-18T12:46:33",
+        "importance": 1.0,
         "project": null,
         "task_id": null,
         "tags": [
@@ -15,8 +15,12 @@
         ],
         "metadata": {
             "preference_key": "preferred_editor",
-            "preference_value": "VSCode"
-        }
+            "preference_value": "VSCode",
+            "key": "preferred_editor",
+            "value": "VSCode",
+            "source": "explicit_user"
+        },
+        "last_used_at": "2026-09-18T12:46:33"
     },
     "mem_user_20260814_175145_9ff61b": {
         "id": "mem_user_20260814_175145_9ff61b",
@@ -52,5 +56,40 @@
             "project"
         ],
         "metadata": {}
+    },
+    "mem_user_20260903_172803_26cc53": {
+        "id": "mem_user_20260903_172803_26cc53",
+        "type": "user",
+        "content": "I am working on a project called Jarvis.",
+        "source": "explicit_user",
+        "created_at": "2026-09-03T17:28:03",
+        "updated_at": "2026-09-03T17:28:03",
+        "importance": 0.9,
+        "project": null,
+        "task_id": null,
+        "tags": [
+            "explicit",
+            "user"
+        ],
+        "metadata": {}
+    },
+    "mem_user_20260904_112800_b5260a": {
+        "id": "mem_user_20260904_112800_b5260a",
+        "type": "user",
+        "content": "User preference: preferred_framework = Flutter",
+        "source": "user_preference",
+        "created_at": "2026-09-04T11:28:00",
+        "updated_at": "2026-09-04T11:28:00",
+        "importance": 0.9,
+        "project": null,
+        "task_id": null,
+        "tags": [
+            "user_preference",
+            "preferred_framework"
+        ],
+        "metadata": {
+            "preference_key": "preferred_framework",
+            "preference_value": "Flutter"
+        }
     }
 }

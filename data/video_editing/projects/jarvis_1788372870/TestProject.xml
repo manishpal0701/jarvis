@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmeml version="5">
+  <sequence id="sequence-1">
+    <name>TestProject</name>
+    <duration>300</duration>
+    <rate><timebase>30</timebase><ntsc>TRUE</ntsc></rate>
+    <media><video><format><samplecharacteristics><width>1920</width><height>1080</height></samplecharacteristics></format><track></track></video></media>
+  </sequence>
+</xmeml>

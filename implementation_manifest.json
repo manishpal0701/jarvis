@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "app_id": "test_expense",
+    "total_files": 23,
+    "architecture_hash": "b51f32bf106e8da1bf2a27666bd48986b419cf97550da6e8e1478630e1ae7ef3"
+  },
+  "files": [
+    {
+      "path": "backend/package.json",
+      "platform": "Node",
+      "purpose": "Backend dependency manifest & npm scripts",
+      "operation": "CREATE",
+      "dependencies": [
+        "express",
+        "cors"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/server.js",
+      "platform": "Node",
+      "purpose": "Backend Express server bootstrap & HTTP entry point",
+      "operation": "CREATE",
+      "dependencies": [
+        "app.js"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/app.js",
+      "platform": "Node",
+      "purpose": "Express app configuration, CORS, routes & error middleware",
+      "operation": "CREATE",
+      "dependencies": [
+        "routes"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/routes/expenseRoutes.js",
+      "platform": "Node",
+      "purpose": "Express API routes for expense",
+      "operation": "CREATE",
+      "dependencies": [
+        "expenseController.js"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/routes/authRoutes.js",
+      "platform": "Node",
+      "purpose": "Express authentication routes",
+      "operation": "CREATE",
+      "dependencies": [
+        "authController.js"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/controllers/expenseController.js",
+      "platform": "Node",
+      "purpose": "Controller logic for expense",
+      "operation": "CREATE",
+      "dependencies": [
+        "expenseService.js"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/controllers/authController.js",
+      "platform": "Node",
+      "purpose": "User authentication controller logic",
+      "operation": "CREATE",
+      "dependencies": [
+        "authService"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/models/expenseModel.js",
+      "platform": "Node",
+      "purpose": "Data store layer for expense records",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/src/middleware/errorHandler.js",
+      "platform": "Node",
+      "purpose": "Centralized Express error handling middleware",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "backend/tests/server.test.js",
+      "platform": "Node",
+      "purpose": "Backend API endpoint test suite",
+      "operation": "CREATE",
+      "dependencies": [
+        "server.js"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/pubspec.yaml",
+      "platform": "Flutter",
+      "purpose": "Flutter package dependencies & asset configuration",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/main.dart",
+      "platform": "Flutter",
+      "purpose": "Application root entry point & Material app runner",
+      "operation": "CREATE",
+      "dependencies": [
+        "app_theme.dart",
+        "splash_screen.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/theme/app_theme.dart",
+      "platform": "Flutter",
+      "purpose": "Material3 dark/light theme definitions",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/models/user_model.dart",
+      "platform": "Flutter",
+      "purpose": "User data model & JSON serialization",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/models/expense_item_model.dart",
+      "platform": "Flutter",
+      "purpose": "Expense item model & JSON serialization",
+      "operation": "CREATE",
+      "dependencies": [],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/services/api_service.dart",
+      "platform": "Flutter",
+      "purpose": "REST HTTP API client matching shared API contract",
+      "operation": "CREATE",
+      "dependencies": [
+        "user_model.dart",
+        "expense_item_model.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/widgets/custom_widgets.dart",
+      "platform": "Flutter",
+      "purpose": "Reusable UI widgets (CustomCard, PrimaryButton, StatusChip)",
+      "operation": "CREATE",
+      "dependencies": [
+        "app_theme.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/splash_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for SplashScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/login_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for LoginScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/dashboard_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for DashboardScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/expense_detail_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for ExpenseDetailScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/add_expense_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for AddExpenseScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    },
+    {
+      "path": "frontend/lib/screens/profile_screen.dart",
+      "platform": "Flutter",
+      "purpose": "Screen component for ProfileScreen",
+      "operation": "CREATE",
+      "dependencies": [
+        "custom_widgets.dart",
+        "api_service.dart"
+      ],
+      "generated_by": "AppCodingAgent",
+      "status": "PENDING",
+      "error": null
+    }
+  ]
+}

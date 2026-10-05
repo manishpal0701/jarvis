@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jarvis Coding Workspace</title>
+    <title>Jarvis AI IDE Workspace</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,41 +11,368 @@
 </head>
 <body>
     <div class="workspace-container">
-        <!-- Minimalist IDE Top Navbar -->
+        <!-- 1. IDE TOP HEADER -->
         <header class="ide-header">
             <div class="header-left">
                 <div class="brand">
                     <span class="brand-icon">⚡</span>
                     <span class="brand-title">JARVIS</span>
-                    <span class="brand-sub">WORKSPACE</span>
+                    <span class="brand-sub">AI IDE</span>
                 </div>
-                <div class="file-tabs-bar" id="fileTabsContainer">
-                    <div class="file-path-badge active" id="filePathBadge">
-                        <span class="folder-icon">📁</span>
-                        <span id="filePath">main.py</span>
-                    </div>
+                <div class="project-title-badge" id="projectTitleBadge">
+                    <span class="project-icon">📂</span>
+                    <span id="projectNameText">Bella Tavola Ristorante Italiano</span>
                 </div>
             </div>
 
             <div class="header-right">
-                <div class="lang-badge" id="langBadge">Python</div>
-                <div class="status-pill" id="statusPill">
+                <div class="sidebar-tab-switcher">
+                    <button class="tab-btn active" id="tabExplorerBtn">📂 Explorer</button>
+                    <button class="tab-btn highlight" id="tabBriefBtn" onclick="window.openClientBriefModal && window.openClientBriefModal()">📋 Client Brief & Assets</button>
+                </div>
+                <div class="lang-badge" id="langBadge">React / TypeScript</div>
+                <div class="status-pill writing" id="statusPill">
                     <span class="status-dot pulsing"></span>
-                    <span class="status-text" id="statusText">Jarvis is ready</span>
+                    <span class="status-text" id="statusText">Website Ready</span>
                 </div>
             </div>
         </header>
 
-        <!-- Visual Code Editor Area -->
-        <main class="editor-viewport">
-            <div class="editor-window">
-                <div class="line-numbers" id="lineNumbers">1</div>
-                <pre class="code-pre"><code class="code-display" id="codeDisplay"># Jarvis visual coding workspace initialized.
-# Generated code will appear here live...</code></pre>
-            </div>
+        <!-- 2. MAIN 3-PANEL VIEWPORT -->
+        <main class="main-split-viewport">
+            <!-- PANEL A: PROJECT EXPLORER / CLIENT BRIEF -->
+            <aside class="sidebar-explorer">
+                <div class="sidebar-header" id="sidebarHeaderExplorer">
+                    <span class="sidebar-title">PROJECT EXPLORER</span>
+                </div>
+                <div class="file-tree" id="fileTree">
+                    <!-- Dynamic File Tree Rendered Here -->
+                </div>
+
+                <!-- CLIENT BRIEF & ASSETS PANEL (TOGGLEABLE) -->
+                <div class="client-brief-panel hidden" id="clientBriefPanel">
+                    <div class="brief-panel-header">
+                        <span class="brief-title">📋 CLIENT BRIEF & ASSETS</span>
+                        <span class="brief-state-pill" id="briefStatePill">COLLECTING</span>
+                    </div>
+
+                    <!-- 1. CLIENT CHAT -->
+                    <div class="brief-section">
+                        <div class="section-label">CLIENT CHAT & REQUIREMENTS</div>
+                        <div class="chat-history" id="chatHistory">
+                            <div class="chat-msg system">Jarvis: Tell me about your business, product, or website requirements.</div>
+                        </div>
+                        <div class="chat-input-row">
+                            <input type="text" id="briefChatInput" placeholder="Type details or 'bas itni hi details'..." />
+                            <button id="sendBriefMsgBtn">Send</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. REFERENCES -->
+                    <div class="brief-section">
+                        <div class="section-label">REFERENCES</div>
+                        <div class="ref-actions">
+                            <button class="ref-btn" id="addRefUrlBtn">+ URL</button>
+                            <button class="ref-btn" id="addRefVideoBtn">+ Video</button>
+                            <button class="ref-btn" id="addRefPdfBtn">+ PDF</button>
+                        </div>
+                        <div class="ref-list" id="refList">
+                            <div class="empty-hint">No references added yet</div>
+                        </div>
+                    </div>
+
+                    <!-- 3. CLIENT ASSETS / IMAGE UPLOAD -->
+                    <div class="brief-section">
+                        <div class="section-label">CLIENT ASSETS (IMAGES)</div>
+                        <div class="upload-dropzone" id="uploadDropzone">
+                            <input type="file" id="imageFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" multiple style="display:none;" />
+                            <button class="upload-btn" id="triggerUploadBtn">+ Upload Images (PNG/JPG/WEBP)</button>
+                        </div>
+                        <div class="assets-list" id="assetsList">
+                            <div class="empty-hint">No client assets uploaded yet</div>
+                        </div>
+                    </div>
+
+                    <!-- 4. SMART BRIEF PREVIEW / APPROVAL -->
+                    <div class="brief-section preview-card-box">
+                        <div class="section-label">SMART BRIEF PREVIEW</div>
+                        <div class="brief-preview-content" id="briefPreviewContent">
+                            <div class="preview-row"><strong>Type:</strong> <span id="prevType">UNKNOWN</span></div>
+                            <div class="preview-row"><strong>Brand:</strong> <span id="prevBrand">Pending Details</span></div>
+                            <div class="preview-row"><strong>Description:</strong> <span id="prevDesc">Provide business description</span></div>
+                            <div class="preview-row"><strong>Images:</strong> <span id="prevImageCount">0 uploaded</span></div>
+                            <div class="preview-row"><strong>References:</strong> <span id="prevRefCount">0 added</span></div>
+                        </div>
+                        <div class="brief-approval-actions">
+                            <button class="brief-action-btn secondary" id="editBriefBtn">Edit Brief</button>
+                            <button class="brief-action-btn primary" id="approveGenerateBtn">🚀 Generate Website</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+
+            <!-- PANEL B: CODE EDITOR -->
+            <section class="editor-panel">
+                <div class="file-tabs-bar" id="fileTabsContainer">
+                    <!-- Dynamic Tabs Rendered Here -->
+                </div>
+                <div class="editor-info-subbar" id="editorInfoSubbar">
+                    <div class="editor-info-left">
+                        <span class="editor-file-name" id="editorFileName">App.tsx</span>
+                        <span class="editor-lang-pill" id="editorLangBadge">TSX</span>
+                    </div>
+                    <div class="editor-info-right">
+                        <span class="editor-file-status status-complete" id="editorFileStatus">✓ Complete</span>
+                        <span class="editor-line-count" id="editorLineCount">0 lines</span>
+                    </div>
+                </div>
+                <div class="editor-window" id="editorWindow">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <pre class="code-pre"><code class="code-display" id="codeDisplay">// Jarvis AI Code Stream Initializing...</code></pre>
+                </div>
+            </section>
+
+            <!-- PANEL C: LIVE WEBSITE PREVIEW -->
+            <section class="preview-panel">
+                <div class="preview-toolbar">
+                    <div class="preview-address-bar">
+                        <span class="lock-icon">🔒</span>
+                        <input type="text" id="previewUrlInput" value="Preview Server: Not Started" readonly />
+                    </div>
+                    <div class="preview-actions">
+                        <button class="preview-btn" id="refreshPreviewBtn" title="Refresh Preview">↻</button>
+                        <button class="preview-btn primary" id="openBrowserBtn" title="Open in System Browser">↗ Browser</button>
+                    </div>
+                </div>
+                <div class="preview-frame-container">
+                    <iframe id="previewIframe" src="about:blank"></iframe>
+                </div>
+            </section>
         </main>
+
+        <!-- 3. PANEL D: AI ACTIVITY & FINAL WEBSITE STATUS CARD -->
+        <footer class="activity-footer">
+            <div class="activity-header">
+                <span class="activity-title">⚡ JARVIS BUILD ACTIVITY &amp; DEPLOYMENT STATUS</span>
+                <span class="activity-toggle" id="activityToggle">▼</span>
+            </div>
+            <div class="activity-body" id="activityBody">
+                <div class="pipeline-steps" id="pipelineSteps">
+                    <div class="step-item step-done"><span>✓</span> Initializing project workspace...</div>
+                </div>
+
+                <div class="status-card-box" id="statusCardBox">
+                    <div class="status-card-header" id="statusCardHeader">BUILD IN PROGRESS</div>
+                    <div class="status-card-grid" id="statusCardGrid">
+                        <div>Build: <span id="badgeBuild" class="badge-amber">○ In Progress</span></div>
+                        <div>Visual QA: <span id="badgeVQA" class="badge-amber">○ Pending</span></div>
+                        <div>Responsive: <span id="badgeResponsive" class="badge-amber">○ Pending</span></div>
+                        <div>Console Errors: <span id="badgeConsole" class="badge-amber">0</span></div>
+                        <div>Broken Images: <span id="badgeImages" class="badge-amber">0</span></div>
+                    </div>
+                    <div class="status-urls">
+                        <div class="url-row">
+                            <span class="url-label">TEMPORARY PREVIEW:</span>
+                            <a id="temporaryPublicUrl" href="#" target="_blank" class="url-link">Not Shared</a>
+                        </div>
+                        <div class="url-row">
+                            <span class="url-label">PERMANENT HOSTING:</span>
+                            <span id="permanentPublicUrl" class="url-text">Not deployed (Say "Jarvis, isko host karo")</span>
+                        </div>
+                </div>
+            </div>
+        </footer>
+
+    <!-- FULL INTERACTIVE CLIENT BRIEF MODAL OVERLAY -->
+    <div class="modal-overlay hidden" id="clientBriefModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">📋 CLIENT BRIEF & ASSETS WORKSPACE</div>
+                <button class="modal-close-btn" id="closeBriefModalBtn">✖</button>
+            </div>
+            <div class="modal-body">
+                <!-- SECTION 1: BUSINESS & BRAND INFO -->
+                <div class="modal-section-box">
+                    <div class="modal-section-title">1. CLIENT & BRAND INFORMATION</div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label>Client / Business Name *</label>
+                            <input type="text" id="modalBizName" placeholder="e.g. Bella Tavola Ristorante Italiano" />
+                        </div>
+                        <div class="form-group">
+                            <label>Business Type / Category *</label>
+                            <select id="modalWebType">
+                                <option value="RESTAURANT_CAFE">Restaurant / Cafe</option>
+                                <option value="BUSINESS_WEBSITE">Business / Corporate Website</option>
+                                <option value="PRODUCT_WEBSITE">Product / SaaS Landing Page</option>
+                                <option value="SERVICE_BUSINESS">Service Business</option>
+                                <option value="AGENCY_WEBSITE">Creative Agency</option>
+                                <option value="DEVELOPER_PORTFOLIO">Developer Portfolio</option>
+                                <option value="LANDING_PAGE">Landing Page</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Website Goal</label>
+                            <input type="text" id="modalGoal" placeholder="e.g. Online table reservations & showcasing authentic Italian dishes" />
+                        </div>
+                        <div class="form-group">
+                            <label>Target Audience</label>
+                            <input type="text" id="modalAudience" placeholder="e.g. Italian food lovers, families, fine dining enthusiasts" />
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="modalLocation" placeholder="e.g. Downtown Florence / New York" />
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="text" id="modalPhone" placeholder="+1 (555) 234-5678" />
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="modalEmail" placeholder="info@bellatavola.com" />
+                        </div>
+                        <div class="form-group">
+                            <label>Physical Address</label>
+                            <input type="text" id="modalAddress" placeholder="123 Via Roma, Culinary District" />
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Brand Description</label>
+                            <textarea id="modalBizDesc" rows="2" placeholder="Authentic Tuscan dining experience with fresh handcrafted pasta and vintage wines."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: BRAND DESIGN & STYLE -->
+                <div class="modal-section-box">
+                    <div class="modal-section-title">2. BRAND DESIGN & VISUAL STYLE</div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label>Brand Tone / Style</label>
+                            <input type="text" id="modalBrandStyle" placeholder="e.g. Warm Luxury, Authentic Rustic Italian" />
+                        </div>
+                        <div class="form-group">
+                            <label>Primary Color</label>
+                            <input type="text" id="modalPrimaryColor" placeholder="e.g. #8B0000 (Deep Crimson / Tuscan Wine)" />
+                        </div>
+                        <div class="form-group">
+                            <label>Secondary Color</label>
+                            <input type="text" id="modalSecondaryColor" placeholder="e.g. #D4AF37 (Warm Gold / Olive Accent)" />
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Font</label>
+                            <input type="text" id="modalFont" placeholder="e.g. Playfair Display / Inter" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: WEBSITE REQUIREMENTS -->
+                <div class="modal-section-box">
+                    <div class="modal-section-title">3. WEBSITE REQUIREMENTS & PAGES</div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label>Required Pages / Sections</label>
+                            <input type="text" id="modalPages" placeholder="e.g. Hero, Menu, About Us, Reservations, Testimonials, Contact" />
+                        </div>
+                        <div class="form-group">
+                            <label>Key Features / Functionality</label>
+                            <input type="text" id="modalFeatures" placeholder="e.g. Table reservation modal, interactive menu filter, map" />
+                        </div>
+                        <div class="form-group">
+                            <label>Main Call To Action (CTA)</label>
+                            <input type="text" id="modalCta" placeholder="e.g. Reserve a Table / Order Online" />
+                        </div>
+                        <div class="form-group">
+                            <label>SEO Requirements</label>
+                            <input type="text" id="modalSeo" placeholder="e.g. Italian Restaurant NYC, Fine Dining Table Booking" />
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Special Instructions & Requirements</label>
+                            <textarea id="modalNotes" rows="2" placeholder="Highlight chef specials, opening hours 5 PM - 11 PM."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: DESIGN REFERENCES -->
+                <div class="modal-section-box">
+                    <div class="modal-section-title">4. DESIGN REFERENCES & INSPIRATION</div>
+                    <div class="modal-grid">
+                        <div class="form-group full-width">
+                            <label>Reference Website URL</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="modalRefUrl" placeholder="https://example-restaurant.com" />
+                                <button type="button" id="modalSaveRefUrlBtn">+ Add Reference</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: WEBSITE CONTENT -->
+                <div class="modal-section-box">
+                    <div class="modal-section-title">5. WEBSITE CONTENT</div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label>Hero Heading</label>
+                            <input type="text" id="modalHeroHeading" placeholder="e.g. Authentic Italian Flavors in the Heart of the City" />
+                        </div>
+                        <div class="form-group">
+                            <label>Hero Subtitle / Description</label>
+                            <input type="text" id="modalHeroDesc" placeholder="e.g. Experience handcrafted pasta and award-winning Tuscan wines." />
+                        </div>
+                        <div class="form-group full-width">
+                            <label>About Us Content</label>
+                            <textarea id="modalAboutContent" rows="2" placeholder="Founded in 1998, Bella Tavola brings centuries of Italian culinary tradition..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: CLIENT ASSETS & IMAGE UPLOAD -->
+                <div class="modal-section-box highlight-box">
+                    <div class="modal-section-title">6. CLIENT ASSETS (IMAGE UPLOAD)</div>
+                    <div class="upload-controls-row">
+                        <div class="form-group flex-1">
+                            <label>Asset Category / Role</label>
+                            <select id="modalAssetRole">
+                                <option value="hero_image">Hero Image</option>
+                                <option value="logo">Brand Logo</option>
+                                <option value="restaurant_image">Restaurant / Interior Image</option>
+                                <option value="product_image">Dishes / Product Image</option>
+                                <option value="team_image">Team / Chef Image</option>
+                                <option value="gallery_image">Gallery Image</option>
+                                <option value="general">Other Asset</option>
+                            </select>
+                        </div>
+                        <div class="upload-btns-row">
+                            <input type="file" id="modalImageInput" accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml" multiple style="display:none;" />
+                            <button type="button" class="btn-secondary highlight" id="modalTriggerImagesBtn">+ Upload Images (.png, .jpg, .webp, .svg)</button>
+                            <input type="file" id="modalLogoInput" accept="image/png, image/jpeg, image/jpg, image/svg+xml" style="display:none;" />
+                            <button type="button" class="btn-secondary" id="modalTriggerLogoBtn">+ Upload Brand Logo</button>
+                        </div>
+                    </div>
+
+                    <!-- ASSET & REFERENCE THUMBNAILS PREVIEW -->
+                    <div class="modal-assets-preview-box">
+                        <div class="sub-label">Uploaded Client Assets</div>
+                        <div class="modal-asset-cards" id="modalAssetCards">
+                            <div class="empty-hint">No client images uploaded yet</div>
+                        </div>
+                        <div class="sub-label margin-top">Added Design References</div>
+                        <div class="modal-ref-cards" id="modalRefCards">
+                            <div class="empty-hint">No reference URLs or files added yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn secondary warning" id="modalResetBtn">🧹 Clear Brief</button>
+                <button class="modal-btn secondary" id="modalSaveBtn">💾 Save Client Brief</button>
+                <button class="modal-btn primary" id="modalApproveBtn">🚀 Save &amp; Generate Website</button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
+

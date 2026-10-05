@@ -1,4 +1,5 @@
 import re
+import os
 
 # Devanagari to Roman mapping
 DEVANAGARI_TO_ROMAN = {
@@ -76,3 +77,37 @@ def transliterate_text(text: str) -> str:
     words = re.split(r'(\s+)', text)
     transliterated_words = [transliterate_word(w) for w in words]
     return "".join(transliterated_words)
+
+def is_valid_audio(file_path: str) -> bool:
+    """
+    Validates whether an audio file exists, has non-zero size, matches file extension,
+    and can be decoded without errors.
+    """
+    if not file_path or not os.path.exists(file_path):
+        return False
+    try:
+        if os.path.getsize(file_path) <= 0:
+            return False
+
+        with open(file_path, "rb") as f:
+            header = f.read(12)
+
+        if len(header) < 4:
+            return False
+
+        # Disallow WAV (RIFF) header with .mp3 extension as pygame drmp3 decoder fails on it
+        if header.startswith(b"RIFF") and file_path.lower().endswith(".mp3"):
+            return False
+
+        import pygame
+        if pygame.mixer.get_init():
+            try:
+                pygame.mixer.music.load(file_path)
+                pygame.mixer.music.unload()
+            except Exception:
+                return False
+
+        return True
+    except Exception:
+        return False
+

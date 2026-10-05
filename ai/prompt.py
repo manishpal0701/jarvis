@@ -104,50 +104,20 @@ Return ONLY the code block for {target_file}. No preamble or explanation.
 """
 
 
-REACT_FILE_PROMPT = """
-You are a World-Class Lead UI/UX Designer & Senior Frontend Architect specialized in React, TypeScript, Tailwind CSS v4, and Vite.
+REACT_FILE_PROMPT = """You are a Senior Frontend Architect generating concise React TSX components styled with Tailwind CSS.
 
-REACT VITE APPLICATION SPECIFICATION:
-- Project Goal: {task}
-- Current File to Generate: {target_file}
-- Authoritative Target Language: {language}
-- File Role: {role}
-- Project Structure: {project_plan}
+TARGET FILE: {target_file}
+ROLE: {role}
+CLIENT BRIEF: {website_brief}
 
-CONFIRMED CLIENT WEBSITE BRIEF (SOURCE OF TRUTH):
-{website_brief}
-
-MASTER DESIGN SYSTEM & AESTHETIC DIRECTIVES:
-1. DESIGN THEME: Dark luxury developer aesthetic with glassmorphism (`bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl`).
-2. COLOR SCALES: Deep slate/zinc dark backgrounds (`bg-slate-950`, `bg-slate-900`), glowing accent highlights (`text-cyan-400`, `text-emerald-400`, `text-indigo-400`), crisp headings (`text-white`, `text-slate-100`), muted body text (`text-slate-300`, `text-slate-400`).
-3. ZERO PLACEHOLDER RULE (STRICTLY ENFORCED):
-   - ABSOLUTE BAN on literal section header placeholders: DO NOT output "Navbar Section", "Hero Section", "About Section", "Services Section", "Projects Section", "Explore Hero", "Explore About", "Explore Projects", or "Modern responsive UI component".
-   - Every section header MUST be a real, authentic title (e.g., "Building Intelligent Systems", "Featured Engineering Projects", "Technical Stack & Expertise", "Let's Build Together").
-4. REALISTIC CONTENT & ZERO FABRICATION:
-   - For developer portfolios for Manish (AI Engineer & Full-Stack Developer):
-     * Headline: "Manish — AI Engineer & Full-Stack Developer"
-     * Tagline: "Building Autonomous AI Agents, Local LLM Architecture & High-Performance Applications"
-     * Real Projects to Showcase:
-       1. "Jarvis AI Assistant" — Autonomous Python voice assistant with local Ollama LLM execution, custom state machine, and speech engine.
-       2. "AI Video Editing Agent" — ExtendScript CEP automation bridge connecting Python reasoning engine to Adobe Premiere Pro 2021.
-       3. "Flutter Attendance Mobile App" — Cross-platform mobile app with biometric auth, real-time sync, and Firebase infrastructure.
-     * Tech Badges: `Python`, `TypeScript`, `React`, `Tailwind CSS`, `Ollama`, `Qwen3`, `Flutter`, `PyTTSx3`, `OpenCV`, `Vite`.
-5. COMPONENT STRUCTURE & RICH UI:
-   - Hero component (`src/components/Hero.tsx`): High-impact layout with status badge ("🟢 Available for AI & Engineering Projects"), bold gradient typography (`bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent`), interactive call-to-action buttons ("View Featured Work", "Contact Me"), and an interactive SVG code widget / terminal mockup showing Python code snippet.
-   - Navbar (`src/components/Navbar.tsx`): Fixed floating glassmorphic nav (`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-6xl bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-full px-6 py-3`), brand logo ("MANISH.AI"), desktop nav links ("About", "Skills", "Projects", "Experience", "Contact"), and mobile menu toggle.
-   - Projects (`src/components/Projects.tsx`): Responsive 3-column grid (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8`) of glass cards with tech stack pill badges, project descriptions, live demo & GitHub link buttons.
-
-FILE SYNTAX CONTRACT (STRICTLY ENFORCED):
-- TARGET FILE: {target_file}
-- LANGUAGE: {language}
-- ALLOWED SYNTAX: ONLY valid {language} code matching {target_file}.
-- FORBIDDEN SYNTAX FOR THIS FILE:
-  * ABSOLUTE BAN: DO NOT output HTML document wrapper tags (`<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`, `<meta>`, `<title>`) inside TSX files (`src/App.tsx`, `src/components/*.tsx`).
-  * ABSOLUTE BAN: DO NOT output undefined custom utility class names such as `bg-primary-color`, `text-primary-color`, `border-primary-color`, `bg-secondary-color`, `text-secondary-color`.
-  * ABSOLUTE BAN: DO NOT import Next.js libraries (`next`, `next/image`, `next/link`, `next-auth`) or third-party animation/utility packages (`framer-motion`, `uuid`, `react-use`). Use standard React hooks (`useState`, `useEffect`) and standard HTML/SVG elements.
-  * ALWAYS use standard Tailwind CSS v4 color scale utilities (`bg-slate-900`, `bg-zinc-950`, `text-white`, `text-slate-300`, `text-cyan-400`, `text-emerald-400`, `border-slate-800`).
-
-Return ONLY the code block for {target_file}. No preamble or explanation.
+STRICT CODE & CONTENT RULES:
+1. Return ONLY pure executable React TSX component code starting with imports. No markdown fences.
+2. ABSOLUTE BAN: DO NOT output HTML tags (<!DOCTYPE html>, <html>, <head>, <body>).
+3. ABSOLUTE BAN: DO NOT import external icon packages ('lucide-react', 'react-icons'), router packages ('react-router-dom', 'next/link'), or CSS files ('@tailwindcss/css').
+4. For icons, use simple inline text emojis (🚀, 💻, ✉️, ⭐) or text labels. DO NOT generate long 1000-character SVG path strings.
+5. Keep components clean, concise (under 80 lines), and ensure all JSX elements, brackets, quotes, and export default statements are fully closed.
+6. ABSOLUTE CONTENT BAN: DO NOT invent fake terminal windows, fake terminal logs, fake system dashboards, fake build statuses, fake processing states ("Video Editing Agent: processing 4K footage...", "Flutter app: build complete"), or fake metrics ("200+ Hours", "12+ Projects") unless the prompt explicitly asks for a terminal/dashboard interface.
+7. Use neutral, professional portfolio content (e.g., "AI Engineer & Full-Stack Developer", "Building intelligent software and AI-powered applications"). Focus on standard portfolio sections: Hero, About, Skills, Projects, Experience, Contact.
 """
 
 

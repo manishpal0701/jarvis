@@ -8,8 +8,7 @@ import numpy as np
 class VideoAnalyzer:
     def __init__(self):
         self.supported_extensions = ['.mp4', '.mov', '.avi', '.mkv']
-        self.gpu_device = self._detect_gpu()
-        print(f"VideoAnalyzer initialized using: {self.gpu_device}")
+        self.gpu_device = None
 
     def _detect_gpu(self):
         try:

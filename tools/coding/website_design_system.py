@@ -40,7 +40,74 @@ class WebsiteDesignSystemGenerator:
         model_name = ModelRouter.get_instance().get_model_for_task("website_design")
         wtype = getattr(research_spec, "website_type", "portfolio")
 
-        if wtype in ("developer_portfolio", "portfolio") or "developer" in prompt.lower() or "engineer" in prompt.lower():
+        p_lower = prompt.lower()
+        if wtype in ("luxurious_italian_restaurant", "restaurant") or any(k in p_lower for k in ["restaurant", "italian", "bella tavola", "menu"]):
+            css_vars = {
+                "background": "#0c0a09",
+                "surface": "#1c1917",
+                "primary": "#f59e0b",
+                "secondary": "#d97706",
+                "accent": "#78350f",
+                "text-primary": "#fafaf9",
+                "text-secondary": "#d6d3d1",
+                "border": "#44403c",
+                "radius": "1rem"
+            }
+            return WebsiteDesignSystem(
+                theme_name="luxurious_gastronomy",
+                primary_color="#f59e0b",
+                secondary_color="#d97706",
+                accent_color="#78350f",
+                background_color="#0c0a09",
+                surface_color="#1c1917",
+                text_primary="#fafaf9",
+                text_secondary="#d6d3d1",
+                border_color="#44403c",
+                font_heading="'Playfair Display', Georgia, serif",
+                font_body="'Inter', system-ui, sans-serif",
+                font_mono="'Fira Code', monospace",
+                border_radius="1rem",
+                glassmorphism_class="culinary-panel",
+                card_hover_class="culinary-card",
+                button_primary_class="px-7 py-3.5 text-sm font-bold text-stone-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 rounded-full shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-95 transition-all",
+                button_secondary_class="px-7 py-3.5 text-sm font-semibold text-amber-200 bg-stone-900/80 hover:bg-stone-800 border border-amber-500/40 hover:border-amber-400 rounded-full transition-all",
+                css_variables=css_vars
+            )
+
+        elif any(k in p_lower for k in ["inurum", "futuristic", "cinematic", "spatial", "3d"]) or wtype == "cinematic_tech":
+            css_vars = {
+                "background": "#030712",
+                "surface": "#0f172a",
+                "primary": "#06b6d4",
+                "secondary": "#6366f1",
+                "accent": "#10b981",
+                "text-primary": "#f8fafc",
+                "text-secondary": "#94a3b8",
+                "border": "#1e293b",
+                "radius": "1.25rem"
+            }
+            return WebsiteDesignSystem(
+                theme_name="cinematic_spatial_tech",
+                primary_color="#06b6d4",
+                secondary_color="#6366f1",
+                accent_color="#10b981",
+                background_color="#030712",
+                surface_color="#0f172a",
+                text_primary="#f8fafc",
+                text_secondary="#94a3b8",
+                border_color="#1e293b",
+                font_heading="'Space Grotesk', 'Inter', sans-serif",
+                font_body="'Inter', system-ui, sans-serif",
+                font_mono="'Fira Code', monospace",
+                border_radius="1.25rem",
+                glassmorphism_class="spatial-glass-panel",
+                card_hover_class="card-3d-tilt",
+                button_primary_class="px-8 py-4 text-sm font-bold text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 rounded-xl shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-[1.03] active:scale-95 transition-all transform preserve-3d translate-z-10",
+                button_secondary_class="px-8 py-4 text-sm font-semibold text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400 rounded-xl transition-all",
+                css_variables=css_vars
+            )
+
+        elif wtype in ("developer_portfolio", "portfolio") or "developer" in p_lower or "engineer" in p_lower:
             css_vars = {
                 "background": "#020617",
                 "surface": "#0f172a",
@@ -65,34 +132,7 @@ class WebsiteDesignSystemGenerator:
                 css_variables=css_vars
             )
 
-        elif wtype == "restaurant":
-            css_vars = {
-                "background": "#1c1917",
-                "surface": "#292524",
-                "primary": "#f59e0b",
-                "secondary": "#d97706",
-                "accent": "#ef4444",
-                "text-primary": "#fafaf9",
-                "text-secondary": "#e7e5e4",
-                "border": "#44403c",
-                "radius": "0.75rem"
-            }
-            return WebsiteDesignSystem(
-                theme_name="warm_culinary",
-                primary_color="#f59e0b",
-                secondary_color="#d97706",
-                accent_color="#ef4444",
-                background_color="#1c1917",
-                surface_color="#292524",
-                text_primary="#fafaf9",
-                text_secondary="#e7e5e4",
-                border_color="#44403c",
-                button_primary_class="px-6 py-3 text-sm font-bold text-stone-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-lg transition-all",
-                button_secondary_class="px-6 py-3 text-sm font-semibold text-stone-200 bg-stone-900 border border-stone-700 hover:bg-stone-800 rounded-lg transition-all",
-                css_variables=css_vars
-            )
-
-        elif wtype == "saas_product":
+        elif wtype == "saas_product" or "saas" in p_lower:
             css_vars = {
                 "background": "#0f172a",
                 "surface": "#1e293b",

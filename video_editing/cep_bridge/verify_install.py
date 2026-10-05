@@ -76,6 +76,15 @@ if os.path.isfile(jsx_path):
     check("selfTest() function", "function selfTest()" in jsx)
     check("importFiles() function", "function importFiles(" in jsx)
     check("placeClipOnTimeline()", "function placeClipOnTimeline(" in jsx)
+    check("insertClipOnTimeline()", "function insertClipOnTimeline(" in jsx)
+    check("moveClipOnTimeline()", "function moveClipOnTimeline(" in jsx)
+    check("trimClipOnTimeline()", "function trimClipOnTimeline(" in jsx)
+    check("splitClipOnTimeline()", "function splitClipOnTimeline(" in jsx)
+    check("deleteClipOnTimeline()", "function deleteClipOnTimeline(" in jsx)
+    check("applyTransitionOnTimeline()", "function applyTransitionOnTimeline(" in jsx)
+    check("setVisualEffectOnTimeline()", "function setVisualEffectOnTimeline(" in jsx)
+    check("exportSequenceOnTimeline()", "function exportSequenceOnTimeline(" in jsx)
+    check("readTimelineDetailed()", "function readTimelineDetailed(" in jsx)
 else:
     check("bridge.jsx readable", False, "File missing")
 
@@ -90,7 +99,8 @@ if os.path.isfile(html_path):
     check("BRIDGE_PORT 7842", "7842" in html)
     check("handleHealthCheck", "handleHealthCheck" in html)
     check("handleCommand", "handleCommand" in html)
-    check("EvalScript error detection", "EvalScript error" in html)
+    check("sendStructuredOK", "sendStructuredOK" in html)
+    check("Command allowlisting", "allowedCommands" in html)
 else:
     check("index.html readable", False, "File missing")
 

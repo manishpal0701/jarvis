@@ -16,6 +16,13 @@ class IntentAnalyzer:
         r"^what\s+do\s+you\s+think\?$"
     ]
 
+    HOSTING_PATTERNS = [
+        r"\b(isko|is\s+website\s+ko|this\s+website|project)\s+(host|deploy)\b",
+        r"\b(host|deploy)\s+(this|the)\s+(website|app|project)\b",
+        r"\b(website|app)\s+(permanently\s+deploy|permanently\s+host|live\s+kar\s+do|live\s+krdo)\b",
+        r"\bhost\s+(karo|krdo|kar\s+do)\b"
+    ]
+
     VAGUE_BUILDING_PATTERNS = [
         r"\bi\s+(want|would\s+like)\s+to\s+(build|create|make|develop)\s+an?\s+(app|website|system|project|tool)\b",
         r"\bi\s+need\s+an?\s+(app|website|system|tool)\b",
@@ -68,6 +75,17 @@ class IntentAnalyzer:
 
         text = user_input.strip().lower()
         
+        # 0. Hosting Request Check
+        for pat in self.HOSTING_PATTERNS:
+            if re.search(pat, text):
+                return {
+                    "intent": "website_host",
+                    "requires_clarification": False,
+                    "requires_follow_up": False,
+                    "requires_suggestion": False,
+                    "confidence": 0.98
+                }
+
         # 1. Ambiguous Request Check
         for pat in self.AMBIGUOUS_PATTERNS:
             if re.search(pat, text):
@@ -135,7 +153,7 @@ class IntentAnalyzer:
                 }
 
         # 7. Standard Factual Question
-        if "?" in user_input or text.startswith(("what", "how", "why", "where", "who", "when", "can you", "could you")):
+        if "?" in user_input or text.startswith(("what", "how", "why", "where", "who", "when", "can you", "could you", "can i", "is it", "explain")):
             return {
                 "intent": "question_factual",
                 "requires_clarification": False,

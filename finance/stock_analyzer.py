@@ -393,7 +393,7 @@ class StockAnalyzer:
 
         try:
             response = self.ollama_client.chat(
-                model="llama3.2",
+                model="qwen3:8b",
                 messages=[
                     {"role": "system", "content": system_content},
                     {"role": "user", "content": prompt}

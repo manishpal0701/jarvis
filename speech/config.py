@@ -1,7 +1,7 @@
 import os
 
 # Speech configuration settings
-TTS_PROVIDER = os.getenv("TTS_PROVIDER", "pyttsx3")  # pyttsx3 or edge-tts
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "edge-tts")  # pyttsx3 or edge-tts
 VOICE_PERSONALITY = "Assistant"  # Professional, Friendly, Serious, Assistant
 EMOTION_ENABLED = True
 PAUSE_ENABLED = True

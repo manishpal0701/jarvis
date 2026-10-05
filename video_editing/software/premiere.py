@@ -152,33 +152,42 @@ def _port_is_in_use_by_other() -> bool:
         return False
 
 
-def _send_command(command: str, args: dict | None = None, timeout: float = 10.0) -> dict:
+def _send_command(command: str, args: dict | None = None, timeout: float = 10.0, max_retries: int = 2) -> dict:
     """
     Send a named high-level command to the bridge's /command endpoint.
+    Applies bounded retries (MAX_OPERATION_RETRIES = 2).
     Returns the parsed JSON response dict.
-    Raises RuntimeError on communication failure.
+    Raises RuntimeError on communication or execution failure.
     """
     payload = {"command": command, "args": args or {}}
-    try:
-        r = requests.post(COMMAND_URL, json=payload, timeout=timeout)
-        data = r.json()
-        # Detect 'EvalScript error.' — Premiere returned an error string, not JSON
-        if isinstance(data, dict) and "error" in data:
-            err_msg = data["error"]
-            if "EvalScript error" in str(err_msg):
-                raise RuntimeError(
-                    f"Bridge command '{command}': ExtendScript returned error. "
-                    "bridge.jsx may not be loaded. Open 'Window > Extensions > Jarvis Bridge' in Premiere."
-                )
-        return data
-    except RuntimeError:
-        raise
-    except requests.exceptions.ConnectionError:
-        raise RuntimeError(
-            f"Bridge command '{command}' failed: HTTP server not responding on port {BRIDGE_PORT}."
-        )
-    except Exception as exc:
-        raise RuntimeError(f"Bridge command '{command}' failed: {exc}")
+    last_err = None
+    req_id = f"cmd_{int(time.time() * 1000)}"
+
+    print(f"[PREMIERE_BRIDGE] request_id={req_id} operation={command} status=SENT args={payload['args']}")
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            r = requests.post(COMMAND_URL, json=payload, timeout=timeout)
+            data = r.json()
+            if isinstance(data, dict) and "error" in data:
+                err_msg = data["error"]
+                if "EvalScript error" in str(err_msg):
+                    print(f"[PREMIERE_BRIDGE] request_id={req_id} operation={command} status=FAILED error={err_msg}")
+                    raise RuntimeError(
+                        f"Bridge command '{command}': ExtendScript returned error: {err_msg}"
+                    )
+            print(f"[PREMIERE_BRIDGE] request_id={req_id} operation={command} status=EXECUTED ok={data.get('ok', True)}")
+            return data
+        except requests.exceptions.ConnectionError as exc:
+            last_err = f"HTTP server not responding on port {BRIDGE_PORT}"
+        except Exception as exc:
+            last_err = str(exc)
+
+        if attempt < max_retries:
+            time.sleep(1.0)
+
+    print(f"[PREMIERE_BRIDGE] request_id={req_id} operation={command} status=FAILED error={last_err}")
+    raise RuntimeError(f"PREMIERE_OPERATION_FAILED: Command '{command}' failed after {max_retries} attempts: {last_err}")
 
 
 def _run_extendscript_diagnostic() -> dict:
@@ -418,29 +427,30 @@ def _auto_open_panel_via_menu() -> bool:
     """
     try:
         _log("Attempting to auto-open 'Jarvis Bridge' panel via Window menu...")
+        from video_editing.software.safe_keyboard import SafeKeyboardAutomation
 
-        # Activate Premiere window
-        activate_cmd = (
-            'powershell -Command "'
-            '$wshell = New-Object -ComObject wscript.shell; '
-            '[void]$wshell.AppActivate(\'Adobe Premiere Pro\')'
-            '"'
-        )
-        subprocess.run(activate_cmd, shell=True, check=False)
-        time.sleep(1.5)
+        def _do_open_menu():
+            # Activate Premiere window
+            activate_cmd = (
+                'powershell -Command "'
+                '$wshell = New-Object -ComObject wscript.shell; '
+                '[void]$wshell.AppActivate(\'Adobe Premiere Pro\')'
+                '"'
+            )
+            subprocess.run(activate_cmd, shell=True, check=False)
+            time.sleep(1.5)
 
-        # Click Window menu → Extensions → Jarvis Bridge
-        # SendKeys approach: Alt+W to open Window menu
-        import pyautogui  # type: ignore
-        pyautogui.hotkey("alt", "w")
-        time.sleep(0.8)
-        # Look for "Extensions" submenu
-        pyautogui.typewrite("e", interval=0.05)
-        time.sleep(0.6)
-        # Click "Jarvis Bridge"
-        pyautogui.typewrite("j", interval=0.05)
-        time.sleep(0.5)
-        pyautogui.press("enter")
+            # Click Window menu → Extensions → Jarvis Bridge
+            import pyautogui  # type: ignore
+            pyautogui.hotkey("alt", "w")
+            time.sleep(0.8)
+            pyautogui.typewrite("e", interval=0.05)
+            time.sleep(0.6)
+            pyautogui.typewrite("j", interval=0.05)
+            time.sleep(0.5)
+            pyautogui.press("enter")
+
+        SafeKeyboardAutomation.send_key_safely("auto_open_panel_via_menu", _do_open_menu)
         _log("Panel open command sent. Waiting for bridge to start...")
         return True
     except ImportError:
@@ -455,17 +465,17 @@ def _auto_open_panel_via_menu() -> bool:
 #  9-Point Bridge Health Check
 # ──────────────────────────────────────────────────────────────────────────────
 
-HEALTH_CHECKS = [
+REQUIRED_CONNECTION_CHECKS = [
     "Extension Loaded",
     "HTTP Server Running",
     "WebSocket Connected",
     "Premiere Connected",
-    "Active Project Ready",
-    "Sequence Ready",
     "Timeline API Ready",
     "Import API Ready",
     "Editing API Ready",
 ]
+
+HEALTH_CHECKS = REQUIRED_CONNECTION_CHECKS
 
 
 def _check_bridge_health_full() -> tuple[bool, dict, str]:
@@ -716,158 +726,47 @@ class PremiereProController:
 
     def ensure_connected(self, streamer=None) -> bool:
         """
-        Staged connection manager with full auto-repair.
-
-        Returns True only when all 9 health checks pass.
-        Raises RuntimeError with a precise diagnosis if connection fails.
-
-        NOTE: XML fallback is DISABLED. This method will NOT fall back silently.
+        Staged connection manager with full auto-repair and PremiereProjectController readiness.
         """
         def _say(msg):
             if streamer:
                 streamer.explain(msg)
             _log(msg)
 
-        # Fast path — already connected and bridge alive
         if self._connected and _bridge_is_alive(timeout=1.0):
             _log("Bridge already connected and healthy.")
             return True
 
         self._connected = False
-        _say("Connecting to Premiere Bridge...")
+        _say("Connecting to Premiere Pro Bridge...")
 
-        # ── Stage 1: Run full diagnosis ───────────────────────────────────────
+        # ── Stage 1: Diagnosis & Extension Repair ──────────────────────────────
         _log("Stage 1: Running full CEP diagnosis...")
         diag = _full_cep_diagnosis()
-        _print_diagnosis(diag)
-
-        # ── Stage 2: Repair extension files ───────────────────────────────────
-        _log("Stage 2: Verifying extension files...")
         install_dir = _get_extension_install_dir()
         files_ok = (
             os.path.isfile(os.path.join(install_dir, "CSXS", "manifest.xml")) and
             os.path.isfile(os.path.join(install_dir, "index.html")) and
             os.path.isfile(os.path.join(install_dir, "jsx", "bridge.jsx"))
         )
-        manifest_ok = (
-            diag.get("manifest_csxs_ver") == "9.0" and
-            diag.get("manifest_auto_visible") is True and
-            diag.get("manifest_cef_nodejs") is True
-        )
-
-        if not files_ok or not manifest_ok:
+        if not files_ok:
             _say("Extension files missing or outdated. Auto-repairing...")
             _repair_extension_files()
-            _say("Extension repaired.")
+            _repair_registry()
+            _clear_stale_cep_cache()
 
-        # ── Stage 3: Repair registry ──────────────────────────────────────────
-        _log("Stage 3: Verifying registry (PlayerDebugMode)...")
-        _repair_registry()
+        # ── Stage 2: Premiere Project & DOM Readiness Controller ─────────────
+        from video_editing.software.premiere_project_controller import PremiereProjectController
+        proj_controller = PremiereProjectController()
 
-        # ── Stage 4: Clear stale CEP cache ────────────────────────────────────
-        _log("Stage 4: Clearing stale CEP cache...")
-        if _clear_stale_cep_cache():
-            _say("Stale CEP cache cleared.")
-
-        # ── Stage 5: Verify Premiere is running ───────────────────────────────
-        _log("Stage 5: Checking Premiere Pro process...")
-        pid = _get_running_premiere_pid()
-        if not pid:
-            _say(
-                "Premiere Pro is not running. Please open Adobe Premiere Pro. "
-                f"Jarvis will auto-connect (waiting up to {MAX_WAIT_SECS} seconds)..."
-            )
-            deadline = time.time() + MAX_WAIT_SECS
-            while time.time() < deadline:
-                pid = _get_running_premiere_pid()
-                if pid:
-                    _say(f"Premiere Pro detected (PID {pid}). Attaching...")
-                    break
-                time.sleep(POLL_INTERVAL)
-            else:
-                raise RuntimeError(
-                    f"Premiere Pro did not start within {MAX_WAIT_SECS} seconds. "
-                    "Please open Adobe Premiere Pro and try again."
-                )
-
-        exe = _get_running_premiere_exe() or ""
-        version_str = _get_running_premiere_version() or "unknown"
-        _log(f"Premiere Pro running: PID={pid}, version={version_str}, exe={exe}")
-        if "2021" not in exe:
-            _log(
-                f"NOTE: Running Premiere version is '{version_str}'. "
-                "If this is not Premiere Pro 2021, the bridge still works — "
-                "but ensure this is the correct Premiere version you want to control."
-            )
-
-
-        # ── Stage 6: Try bridge with retry loop ───────────────────────────────
-        _log("Stage 6: Connecting to bridge (retry loop)...")
-        _say("Loading bridge...")
-
-        panel_open_attempted = False
-        backoff = 2.0
-        max_backoff = 10.0
-        max_attempts = 8
-        healthy = False
-        report = {}
-        error_msg = ""
-
-        for attempt in range(1, max_attempts + 1):
-            _log(f"Attempt {attempt}/{max_attempts}...")
-
-            healthy, report, error_msg = _check_bridge_health_full()
-            _print_health_report(report, "" if healthy else error_msg)
-
-            if healthy:
-                break
-
-            # If HTTP server is not running and panel hasn't been auto-opened yet
-            if not report.get("HTTP Server Running") and not panel_open_attempted:
-                _say(
-                    "Bridge HTTP server not running. The CEP panel may not have loaded. "
-                    "Attempting to open 'Jarvis Bridge' panel automatically..."
-                )
-                opened = _auto_open_panel_via_menu()
-                panel_open_attempted = True
-                if opened:
-                    _say("Panel open command sent. Waiting for bridge to start...")
-                    time.sleep(4.0)   # give CEP time to initialize
-                    continue          # retry immediately
-
-            if attempt < max_attempts:
-                _log(f"Retrying in {backoff:.0f}s... Reason: {error_msg}")
-                time.sleep(backoff)
-                backoff = min(backoff * 1.5, max_backoff)
-
-        # ── Stage 7: Final result ─────────────────────────────────────────────
-        if not healthy:
-            # Build a precise, actionable error message
-            failed_checks = [k for k, v in report.items() if not v]
-            repair_hint = _build_repair_hint(diag, failed_checks, error_msg)
-
-            raise RuntimeError(
-                f"\n{'='*60}\n"
-                f"JARVIS BRIDGE FAILED TO CONNECT\n"
-                f"{'='*60}\n"
-                f"Failed checks: {', '.join(failed_checks)}\n"
-                f"Reason: {error_msg}\n"
-                f"\n{repair_hint}\n"
-                f"{'='*60}"
-            )
+        _say("Verifying Premiere Pro process & workspace readiness...")
+        readiness = proj_controller.ensure_project_workspace_ready(timeout=120.0)
 
         self._connected = True
-        _say("Bridge Connected.")
-        _log("Bridge Started [OK]")
-        _log("HTTP Ready [OK]")
-        _log("Connected to Premiere [OK]")
-        _log("Timeline Ready [OK]")
-        _log("Import Ready [OK]")
-        _log("Editing Ready [OK]")
+        _say("Bridge Connected & Premiere DOM Ready.")
+        _log(f"Premiere DOM Ready: {readiness}")
 
-        # Start auto-recovery thread
         self._start_recovery_thread()
-
         return True
 
     # ── Public: live command test ─────────────────────────────────────────────
@@ -889,9 +788,20 @@ class PremiereProController:
 
     # ── High-level Premiere operations ───────────────────────────────────────
 
+def normalize_path(p: str) -> str:
+    """Returns canonical normalized Windows path format for case/slash independent comparisons."""
+    if not p:
+        return ""
+    return os.path.normpath(os.path.abspath(p)).lower().replace("/", "\\")
+
+
     def get_project_info(self) -> dict:
         """Return current project/sequence info."""
         return _send_command("getProjectInfo")
+
+    def get_project_items(self) -> dict:
+        """Return all physical project items present in Premiere Pro's Project Panel."""
+        return _send_command("getProjectItems")
 
     def ensure_project_open(self, project_name: str = "Jarvis_AI_Edit") -> dict:
         """Ensure an active project exists, creating one if needed."""
@@ -905,6 +815,10 @@ class PremiereProController:
     def ensure_sequence(self, sequence_name: str = "Master_Edit") -> dict:
         """Ensure an active sequence exists, creating one if needed."""
         return _send_command("createSequence", {"name": sequence_name})
+
+    def save_project(self) -> dict:
+        """Save the active Premiere Pro project to disk."""
+        return _send_command("saveProject")
 
     def import_clip(self, clip_path: str) -> dict:
         """Import a single file into the active project."""
@@ -923,6 +837,160 @@ class PremiereProController:
     def read_timeline(self) -> dict:
         """Read all clips on the active timeline."""
         return _send_command("readTimeline")
+
+    def read_timeline_detailed(self) -> dict:
+        """Read detailed multi-track timeline information for video and audio tracks."""
+        return _send_command("readTimelineDetailed")
+
+    def insert_clip(self, clip_path: str, timeline_pos: float, track_type: str = "video", track_index: int = 0) -> dict:
+        """Insert a clip onto the specified track at position (seconds), shifting existing clips."""
+        if track_index < 0:
+            raise ValueError(f"track_index must be non-negative, got {track_index}")
+        if timeline_pos < 0:
+            raise ValueError(f"timeline_pos must be non-negative, got {timeline_pos}")
+        return _send_command("insertClip", {
+            "clipPath": clip_path,
+            "timelinePos": float(timeline_pos),
+            "trackType": track_type,
+            "trackIndex": int(track_index)
+        })
+
+    def move_clip(self, track_type: str, track_index: int, clip_index: int, new_pos: float) -> dict:
+        """Move an existing timeline clip to a new start position in seconds."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        if new_pos < 0:
+            raise ValueError(f"new_pos must be non-negative, got {new_pos}")
+        return _send_command("moveClip", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "newPos": float(new_pos)
+        })
+
+    def trim_clip(self, track_type: str, track_index: int, clip_index: int, in_time: float | None = None, out_time: float | None = None) -> dict:
+        """Trim the in_point and/or out_point of a timeline clip (seconds)."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        if in_time is not None and in_time < 0:
+            raise ValueError(f"in_time cannot be negative, got {in_time}")
+        if out_time is not None and out_time < 0:
+            raise ValueError(f"out_time cannot be negative, got {out_time}")
+        return _send_command("trimClip", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "inTime": float(in_time) if in_time is not None else None,
+            "outTime": float(out_time) if out_time is not None else None
+        })
+
+    def split_clip(self, track_type: str, track_index: int, clip_index: int, split_time: float) -> dict:
+        """Split a timeline clip into two segments at split_time (seconds)."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        if split_time < 0:
+            raise ValueError(f"split_time must be non-negative, got {split_time}")
+        return _send_command("splitClip", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "splitTime": float(split_time)
+        })
+
+    def delete_clip(self, track_type: str, track_index: int, clip_index: int, ripple: bool = False) -> dict:
+        """Delete a specified timeline clip."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        return _send_command("deleteClip", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "ripple": bool(ripple)
+        })
+
+    def place_video_clip(self, clip_path: str, timeline_pos: float, track_index: int = 0, overwrite: bool = True) -> dict:
+        """Place a video clip on the specified video track index."""
+        if track_index < 0:
+            raise ValueError(f"track_index must be non-negative, got {track_index}")
+        if timeline_pos < 0:
+            raise ValueError(f"timeline_pos must be non-negative, got {timeline_pos}")
+        cmd = "overwriteClip" if overwrite else "insertClip"
+        return _send_command(cmd, {
+            "clipPath": clip_path,
+            "timelinePos": float(timeline_pos),
+            "trackType": "video",
+            "trackIndex": int(track_index)
+        })
+
+    def place_audio_clip(self, clip_path: str, timeline_pos: float, track_index: int = 0, overwrite: bool = True) -> dict:
+        """Place an audio clip on the specified audio track index."""
+        if track_index < 0:
+            raise ValueError(f"track_index must be non-negative, got {track_index}")
+        if timeline_pos < 0:
+            raise ValueError(f"timeline_pos must be non-negative, got {timeline_pos}")
+        cmd = "overwriteClip" if overwrite else "insertClip"
+        return _send_command(cmd, {
+            "clipPath": clip_path,
+            "timelinePos": float(timeline_pos),
+            "trackType": "audio",
+            "trackIndex": int(track_index)
+        })
+
+    def move_audio_clip(self, track_index: int, clip_index: int, new_pos: float) -> dict:
+        """Move an existing audio clip on the specified audio track."""
+        return self.move_clip("audio", track_index, clip_index, new_pos)
+
+    def trim_audio_clip(self, track_index: int, clip_index: int, in_time: float | None = None, out_time: float | None = None) -> dict:
+        """Trim an audio clip on the specified audio track."""
+        return self.trim_clip("audio", track_index, clip_index, in_time, out_time)
+
+    def delete_audio_clip(self, track_index: int, clip_index: int, ripple: bool = False) -> dict:
+        """Delete an audio clip from the specified audio track."""
+        return self.delete_clip("audio", track_index, clip_index, ripple)
+
+    def align_audio_to_beat(self, clip_path: str, beat_time: float, timeline_pos: float, track_index: int = 0) -> dict:
+        """Align an audio clip to a specified timeline beat position."""
+        if beat_time < 0 or timeline_pos < 0:
+            raise ValueError("beat_time and timeline_pos must be non-negative.")
+        return self.place_audio_clip(clip_path, timeline_pos, track_index=track_index, overwrite=True)
+
+    def apply_transition(self, track_type: str = "video", track_index: int = 0, clip_index: int = 0, transition_type: str = "cut", duration: float = 1.0) -> dict:
+        """Apply a transition to a clip on the specified track."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        if duration < 0:
+            raise ValueError("duration must be non-negative.")
+        return _send_command("applyTransition", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "transitionType": transition_type,
+            "duration": float(duration)
+        })
+
+    def set_visual_effect(self, track_type: str = "video", track_index: int = 0, clip_index: int = 0, effect_name: str = "opacity", value: float = 100.0) -> dict:
+        """Set a visual effect property value on a timeline clip."""
+        if track_index < 0 or clip_index < 0:
+            raise ValueError("track_index and clip_index must be non-negative.")
+        return _send_command("setVisualEffect", {
+            "trackType": track_type,
+            "trackIndex": int(track_index),
+            "clipIndex": int(clip_index),
+            "effectName": effect_name,
+            "value": float(value)
+        })
+
+    def export_sequence(self, output_path: str, preset: str = "INSTAGRAM_REEL", format: str = "mp4", codec: str = "h264", overwrite: bool = False) -> dict:
+        """Export the active Premiere Pro sequence to specified output path."""
+        if not output_path or not isinstance(output_path, str):
+            raise ValueError("output_path must be a non-empty string.")
+        return _send_command("exportSequence", {
+            "outputPath": output_path,
+            "preset": preset,
+            "format": format,
+            "codec": codec,
+            "overwrite": overwrite
+        })
 
     # ── Auto-recovery thread ──────────────────────────────────────────────────
 

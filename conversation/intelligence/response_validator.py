@@ -20,6 +20,25 @@ class ResponseValidator:
         r"^(?:Jarvis|Assistant|AI|Response|System)\s*:\s*"
     ]
 
+    EMOJI_PATTERN = re.compile(
+        r'[\U00010000-\U0010ffff]'  # All Emojis / Pictographs in Supplementary Planes
+        r'|[\u2600-\u27BF]'          # Misc Symbols & Dingbats
+        r'|[\u2300-\u23FF]'          # Technical symbols
+        r'|[\u2B00-\u2BFF]'          # Arrows & misc symbols
+        r'|[\u200D\uFE0F\uFE0E]'     # ZWJ & Variation Selectors
+        r'|[\uD800-\uDBFF][\uDC00-\uDFFF]' # Surrogate pairs
+    )
+
+    def strip_emojis_for_tts(self, text: str) -> str:
+        """
+        Removes all emojis, variation selectors, skin tone modifiers, and decorative
+        pictographs strictly for TTS speech input so emoji names are never spoken.
+        """
+        if not text:
+            return ""
+        no_emoji = self.EMOJI_PATTERN.sub("", text)
+        return re.sub(r"\s{2,}", " ", no_emoji).strip()
+
     def validate_and_clean(self, text: str) -> str:
         """
         Cleans and sanitizes response text for TTS and history logging.
@@ -51,8 +70,14 @@ class ResponseValidator:
         # 6. Strip JSON code blocks
         cleaned = re.sub(r"```(?:json|python)?[\s\S]*?```", "", cleaned)
 
-        # 7. Normalize spaces and line breaks
+        # 7. Strip Emojis strictly for TTS delivery
+        cleaned = self.strip_emojis_for_tts(cleaned)
+
+        # 8. Normalize spaces and line breaks
         cleaned = re.sub(r"\n+", " ", cleaned)
         cleaned = re.sub(r"\s{2,}", " ", cleaned)
+
+        # 9. Strip unauthorized trailing filler check questions (e.g. "Theek hai?", "theek hai?")
+        cleaned = re.sub(r"\s+(?:theek\s+hai|samjhe|samajh\s+gaye)\s*[\?\.]?$", "", cleaned, flags=re.IGNORECASE)
 
         return cleaned.strip()

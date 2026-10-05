@@ -90,6 +90,70 @@ class TestConversationIntelligence(unittest.TestCase):
         self.assertEqual(res["action_type"], "answer_directly")
         self.assertEqual(res["response_style"], "concise")
 
+    def test_13_followup_simple_expense_tracker(self):
+        from conversation.conversation_manager import ConversationManager
+        mgr = ConversationManager.get_instance()
+        mgr.reset_context()
+
+        # Turn 1
+        res1 = mgr.process_and_resolve_input("Ek expense tracker app bana do.")
+        self.assertEqual(mgr.active_entity, "expense tracker app")
+
+        # Turn 2: Follow up reference "isme"
+        res2 = mgr.process_and_resolve_input("Isme dark theme rakhna.")
+        self.assertTrue(res2["has_followup"])
+        self.assertEqual(res2["pronoun"], "isme")
+        self.assertIn("expense tracker app", res2["resolved_text"])
+
+    def test_14_followup_multi_turn_calculator(self):
+        from conversation.conversation_manager import ConversationManager
+        mgr = ConversationManager.get_instance()
+        mgr.reset_context()
+
+        # Turn 1
+        res1 = mgr.process_and_resolve_input("Python me ek calculator bana do.")
+        self.assertIn("calculator", mgr.active_entity.lower())
+
+        # Turn 2
+        res2 = mgr.process_and_resolve_input("Isme history bhi add karo.")
+        self.assertTrue(res2["has_followup"])
+        self.assertEqual(res2["pronoun"], "isme")
+        self.assertIn("calculator", res2["resolved_text"].lower())
+
+    def test_15_context_reset(self):
+        from conversation.conversation_manager import ConversationManager
+        mgr = ConversationManager.get_instance()
+        mgr.reset_context()
+
+        # Turn 1
+        mgr.process_and_resolve_input("Main ek weather app bana raha hoon.")
+        self.assertEqual(mgr.active_entity, "weather app")
+
+        # Turn 2: Reset context
+        mgr.reset_context()
+        self.assertIsNone(mgr.active_entity)
+        self.assertEqual(len(mgr.history), 0)
+
+        # Turn 3: Follow up without active context should NOT point to weather app
+        res3 = mgr.process_and_resolve_input("Isme login add karo.")
+        self.assertNotIn("weather app", res3.get("resolved_text", ""))
+
+    def test_16_unrelated_request_date_filtering(self):
+        from conversation.conversation_manager import ConversationManager
+        mgr = ConversationManager.get_instance()
+        mgr.reset_context()
+
+        # Turn 1: Date question
+        mgr.add_to_history("user", "What is the current date?")
+        mgr.add_to_history("assistant", "Today is September 08, 2026, Boss.")
+
+        # Turn 2: Flutter question
+        filtered_hist = mgr.get_history_context(current_query="Flutter me Riverpod kya hai?")
+        # Date turn should be excluded from filtered history
+        for msg in filtered_hist:
+            self.assertNotIn("current date", msg.get("content", "").lower())
+
 
 if __name__ == "__main__":
     unittest.main()
+

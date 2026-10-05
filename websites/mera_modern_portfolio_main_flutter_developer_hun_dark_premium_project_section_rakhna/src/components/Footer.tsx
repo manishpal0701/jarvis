@@ -1,1 +1,0 @@
-export default function Component_src_components_Footer_tsx() { return <section className='min-h-screen bg-slate-900 text-white p-8'><h1>Flutter Developer Portfolio Section</h1><p>Projects, Skills, Experience</p></section>; }

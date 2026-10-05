@@ -41,13 +41,18 @@ class ContextManager:
         with self._lock:
             self._conv.add_to_history(role, content)
 
-    def get_history_context(self):
+    def get_history_context(self, current_query: str = None):
         with self._lock:
-            return self._conv.get_history_context()
+            return self._conv.get_history_context(current_query=current_query)
 
     def clear_history(self):
         with self._lock:
             self._conv.clear_history()
+
+    def reset_context(self):
+        with self._lock:
+            self._conv.reset_context()
+
 
     def save_log(self, question, answer):
         with self._lock:

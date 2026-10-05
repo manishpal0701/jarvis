@@ -1,0 +1,16 @@
+
+==================================================
+VERIFICATION SUMMARY
+==================================================
+[PASSED] 1. hello jarvis
+[PASSED] 2. how are you?
+[PASSED] 3. what is Python?
+[PASSED] 4. longer response
+[PASSED] 5. two consecutive questions
+[PASSED] 6. user interruption
+[PASSED] 7. repeated casual chat
+[PASSED] 8. long generation
+[PASSED] 9. computer control query routing
+[PASSED] 10. brightness command routing
+
+ALL 10 VERIFICATION SCENARIOS PASSED SUCCESSFULLY!

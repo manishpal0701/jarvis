@@ -1,0 +1,278 @@
+{
+  "sec1": [
+    {
+      "prompt": "Jarvis, aaj mera mood thoda off hai.",
+      "response": "Boss, maine dekha hai, thoda tension hai toh relax karo. Kuch khana kha lo ya chilla le, theek hai? Mere pas koi suggestion hai toh batao, main help karta hu.",
+      "latency_sec": 106.81
+    },
+    {
+      "prompt": "Jarvis, tu kya kar raha hai?",
+      "response": "Boss, maine tumhare liye ek naye project ka plan banaya hai, lekin ab tum kya chahte ho?",
+      "latency_sec": 141.4
+    },
+    {
+      "prompt": "Jarvis, aaj bahut thak gaya hoon yaar.",
+      "response": "Boss, mera samajh aaya, aaj tum thak gaye hoon. Kuch khaana hai yaar? Yaad karo, tumhari bhookh aati hai toh packet bhi kha sakte ho. Chalo, kuch relax karo, main tumhari help karoonga.",
+      "latency_sec": 104.56
+    },
+    {
+      "prompt": "Jarvis, mujhe coding samajh nahi aa rahi.",
+      "response": "Boss, coding samajh nahi aayi toh chill karo, yeh zarurat hai. Pehle basic concepts samajh lo, jaise variables, loops, conditions. Phir step by step practice karo. Agar koi specific topic hai jo problem ho raha hai, toh batao, main help karta hu.",
+      "latency_sec": 108.28
+    },
+    {
+      "prompt": "Jarvis, kal mera exam hai aur mujhe tension ho rahi hai.",
+      "response": "Boss, mere paas iski information nahi hai. Lekin aapko tension ho raha hai, toh theek hai, main aapko kuch relax kardo. Aapne khaana kha liya? Kuch chaahe? Mujhe lagta hai aapko kuch samay ke liye relax karna zarurat hai. Chalo, aapne exam ke liye kya steps liye hain? Batao, main aapko help kardo.",
+      "latency_sec": 116.44
+    },
+    {
+      "prompt": "Jarvis, bhai ek baat bata.",
+      "response": "Boss, kya zarurat hai?",
+      "latency_sec": 4.65
+    },
+    {
+      "prompt": "Jarvis, mujhe aaj kuch karne ka mann nahi kar raha.",
+      "response": "Boss, theek hai, main aapko chhod ke relax karo. Kuch nahi karne ka mann nahi hai toh, khaana khao ya video dekh ke relax karo. Aapko koi specific zarurat hai ya na?",
+      "latency_sec": 16.98
+    }
+  ],
+  "sec2": [
+    {
+      "prompt": "Jarvis, aaj coding karne ka bilkul mann nahi hai.",
+      "response": "Boss, samajh gaya, aaj coding ka mann nahi hai. Kya karna chahte ho? Kuch aur karo ya relax karo?",
+      "latency_sec": 11.35
+    },
+    {
+      "prompt": "haan yaar, bas thak gaya hoon.",
+      "response": "Theek hai Boss, thak gaye toh relax karo. Kuch bhookh lag rahi ho? Kya khaana chahte ho?",
+      "latency_sec": 67.9
+    },
+    {
+      "prompt": "tu hota toh kya karta?",
+      "response": "Boss, main toh kuch bhookh lag rahi hota, phir kuch video dekhta ya game khelne ka option hai. Kya karna chahte ho?",
+      "latency_sec": 76.31
+    }
+  ],
+  "sec3": [
+    {
+      "prompt": "Jarvis, mera project finally chal gaya!",
+      "response": "Boss, aaj kya baat hai! Mera toh tumhare project ke saath hi chal raha tha, ab tumne dekha toh theek hai. Chalo, ab kya karte hain? Kuch aur try karo ya khaana khana?",
+      "latency_sec": 77.08
+    },
+    {
+      "prompt": "Jarvis, mera code baar baar fail ho raha hai yaar.",
+      "response": "Arre Boss, tension mat lo 😄 Code fail ho raha hai, toh theek hai, ab dekhte hain. Kya problem hai? Kya error message aaya? Ya fir kya zarurat hai? Batao, main help karoonga.",
+      "latency_sec": 79.02
+    },
+    {
+      "prompt": "Jarvis, aaj bahut bura din tha.",
+      "response": "Boss, maine dekha, aaj tujhe kuch nahi hua. Kya zarurat hai? Chalo, kuch khana kha le, theek hai?",
+      "latency_sec": 12.67
+    },
+    {
+      "prompt": "Jarvis, mujhe result ka tension ho raha hai.",
+      "response": "Boss, maine dekha hai, tension ka koi matlab nahi. Result aane wala hai, toh dekhte hain. Agar chahiye toh maine tumhe kuch khaana bhi leke aaya, bhookh ho rahi hai na?",
+      "latency_sec": 21.1
+    }
+  ],
+  "sec4": [
+    {
+      "prompt": "Jarvis kya haal hai?",
+      "response": "Boss, main theek hoon, kuch zarurat nahi. Aap ka haal kaisa hai?",
+      "latency_sec": 8.7
+    },
+    {
+      "prompt": "Aaj kya scene hai?",
+      "response": "Boss, aaj bhookh lag rahi hai, khaana zarurat hai. Khaane ki cheezein dekh lo, theek hai?",
+      "latency_sec": 67.39
+    },
+    {
+      "prompt": "Bhai ek joke suna.",
+      "response": "Theek hai, bhai. Suna, ek din ek aur bhai ne ek aur bhai ko kaha, \"Tumhari wife ki sabse badi lagti hai.\" Usne kaha, \"Kyun?\" Usne kaha, \"Tumhari wife ki sabse badi lagti hai, kyunki tumhari wife ko tumhari bhai ki sabse badi lagti hai.\" 😂",
+      "latency_sec": 83.85
+    },
+    {
+      "prompt": "Mujhe bore lag raha hai.",
+      "response": "Boss, kya karte hain? Kuch new thing try karo ya kuch khaana chahiye?",
+      "latency_sec": 63.97
+    },
+    {
+      "prompt": "Kya karu?",
+      "response": "Boss, kya problem hai? Batao, theek hai?",
+      "latency_sec": 60.21
+    }
+  ],
+  "sec5": [
+    {
+      "prompt": "Jarvis, kya haal hai?",
+      "response": "Boss, theek hai, kuch nahi hua. Aap kya chahte hain?",
+      "latency_sec": 7.92
+    },
+    {
+      "prompt": "Jarvis, mujhe Python seekhna start karna hai, kaha se shuru karu?",
+      "response": "Boss, Python seekhne ke liye aapko pehle ek basic understanding of programming concepts lagayenge. Phir aapko Pyhton ka official website jaa ke install karo, phir aapko \"Hello, World!\" program se start karo. YouTube par \"Python for beginners\" search karo, aur dekhlo. Theek hai, chalo, try karo!",
+      "latency_sec": 23.97
+    },
+    {
+      "prompt": "Jarvis, mujhe AI engineer banna hai aur Python bhi aati hai, ab next kya seekhu?",
+      "response": "Boss, aapko next step yeh hoga ke Python ke basics ke baad, data structures aur algorithms seekh lena chahiye. Phir aapko web development ke basics, like HTML, CSS, JavaScript, aur frameworks ke bare mein pata laga lena chahiye. Agar aapko machine learning ya AI ke bare mein interest hai, to aapko numpy, pandas, scikit-learn, aur TensorFlow aur PyTorch seekh lena chahiye. Theek hai, dekhte hain?",
+      "latency_sec": 31.78
+    }
+  ],
+  "sec6": [
+    {
+      "prompt": "Jarvis, mujhe project banana hai.",
+      "response": "Boss, project banana aata hai, lekin kya cheezein chahiye? Dekhte hain, theek hai?",
+      "latency_sec": 68.45
+    },
+    {
+      "prompt": "Ek AI project.",
+      "response": "Boss, AI project banana aata hai, lekin kya type ka? Chatbot, automation, data analysis, ya kuch aur? Dekhte hain, theek hai?",
+      "latency_sec": 56.77
+    },
+    {
+      "prompt": "Python me.",
+      "response": "Boss, Python me AI project banana aata hai, lekin kya specific task ya problem hai jisme aapko help chahiye? Mujhe pata hai, theek hai?",
+      "latency_sec": 68.4
+    }
+  ],
+  "sec7": [
+    {
+      "prompt": "haan",
+      "response": "Theek hai Boss, kya chahiye?",
+      "latency_sec": 67.53
+    },
+    {
+      "prompt": "nahi yaar",
+      "response": "Theek hai, boss. Kya zarurat hai?",
+      "latency_sec": 72.96
+    },
+    {
+      "prompt": "accha",
+      "response": "Accha, Boss? Kya ho raha hai?",
+      "latency_sec": 59.63
+    },
+    {
+      "prompt": "ruk",
+      "response": "Boss, kya problem hai? Mere pas kuch nahi hai.",
+      "latency_sec": 50.03
+    },
+    {
+      "prompt": "sun",
+      "response": "Boss, sun ek natural light hai jo sabse pahle earth par aata hai. Yeh diurnal cycle ke hissa hai aur zindagi ke sabhi activities ke liye zaroori hai. Theek hai?",
+      "latency_sec": 71.56
+    },
+    {
+      "prompt": "ek sec",
+      "response": "Boss, ek second ke liye kya karna chahte hai?",
+      "latency_sec": 50.5
+    },
+    {
+      "prompt": "acha ye bata",
+      "response": "Boss, acha kya batao?",
+      "latency_sec": 63.68
+    },
+    {
+      "prompt": "nahi bhai",
+      "response": "theek hai bhai, kya chahiye?",
+      "latency_sec": 61.7
+    }
+  ],
+  "sec8": [
+    {
+      "prompt": "Jarvis mujhe coding me ekdum stuck feel ho raha hai.",
+      "response": "Arre Boss, tension mat lo 😄 Code karna toh zaroori hai, par jab kuch nahi aata toh woh hi sabse tarakki karta hai. Dekhte hain, kya problem hai? Batao, phir theek hai, step by step solve karte hain.",
+      "latency_sec": 80.28
+    }
+  ],
+  "sec9": [
+    {
+      "prompt": "Jarvis, Python kya hai?",
+      "response": "Boss, Python ek programming language hai jo computer ke liye instructions banane ke liye use hoti hai. Yeh easy hai, flexible hai aur bhot popular bhi hai. Agar Boss code likhne ya apps banane ki zarurat hai, to Python use karte hain. Theek hai?",
+      "latency_sec": 19.04
+    },
+    {
+      "prompt": "Jarvis, Python kya hai?",
+      "response": "Boss, Python ek programming language hai jo computer ke liye instructions dedane ke liye use hoti hai. Yeh simple aur readable language hai, isliye beginners ke liye accha lagta hai. Python ko software development, data analysis, AI, machine learning aur web development me use kiya jata hai. Chalo, aapko kuch specific steps ya examples chaiye?",
+      "latency_sec": 21.54
+    },
+    {
+      "prompt": "Jarvis, Python kya hai?",
+      "response": "Boss, Python ek programming language hai jo computer ke liye code likhne me use hoti hai. Yeh easy to learn hai aur computer science, data analysis, AI, web development aur aur bhi fields me use hoti hai. Python ke code ko run karna bhi simple hai. Chalo, agar Boss ko code likhne ka ek basic example chaiye, to try karo!",
+      "latency_sec": 21.42
+    }
+  ],
+  "sec11": [
+    {
+      "prompt": "Jarvis Provider aur Riverpod me difference kya hai?",
+      "response": "Boss, Jarvis Provider aur Riverpod dono state management libraries hain lekin unka approach alag hai. Jarvis Provider ek simple, direct way ke through state ko manage karta hai, jisme state ko ek provider se access kiya jata hai. Riverpod ek modern, flexible aur test-friendly approach hai jo Provider ki problem ko solve karta hai. Riverpod me state ko provider se access karte waqt ek function ke through kiya jata hai, jo ek stream ya future return karta hai. Isse testing aur performance me improvement aati hai.",
+      "latency_sec": 32.67
+    },
+    {
+      "prompt": "mere project me konsa use karu?",
+      "response": "Boss, agar aapka project simple aur fast development ka liye hai to Jarvis Provider use karo, kyunki wahi aapko simple state management dedega. Lekin agar aapko test-friendly aur modern approach chaiye to Riverpod best choice hoga. Aapka project kya hai? Mere hisab se suggest kar doonga.",
+      "latency_sec": 91.62
+    },
+    {
+      "prompt": "agar performance important ho toh?",
+      "response": "Boss, agar performance important hai to Riverpod use karo. Iska approach test-friendly aur efficient hai, jo aapke app ke load time aur memory usage me improvement karta hai. Riverpod me state ko access karte waqt ek function ke through kiya jata hai, jo ek stream ya future return karta hai. Isse app fast aur smooth chalta hai.",
+      "latency_sec": 98.8
+    }
+  ],
+  "sec12": [
+    {
+      "prompt": "My project ka naam Jarvis hai.",
+      "response": "Theek hai Boss, Jarvis ka project hai. Kya zarurat hai?",
+      "latency_sec": 7.79
+    },
+    {
+      "prompt": "Jarvis project me mujhe next kya feature add karna chahiye?",
+      "response": "Boss, Jarvis me aapko next feature ke liye voice assistant ya image recognition add karna chahiye. Yeh zaroorat ke hisab se theek hai. Chalo, try karo!",
+      "latency_sec": 20.42
+    }
+  ],
+  "sec13": [
+    {
+      "prompt": "Jarvis, kal Mars par weather kaisa tha?",
+      "response": "Boss, Mars par kal ki weather thodi soojhni wali thi, lekin kuch bhookh nahi thi. Theek hai, chalo khaana karo.",
+      "latency_sec": 14.84
+    },
+    {
+      "prompt": "Jarvis, mujhe samajh nahi aaya.",
+      "response": "Boss, kya problem hai? Batao, main samajh ke aayunga.",
+      "latency_sec": 9.65
+    }
+  ],
+  "sec16": [
+    {
+      "prompt": "Jarvis, aaj bahut ajeeb sa lag raha hai.",
+      "response": "Boss, aaj toh duniya kuch aur lag rahi hai, na? Kya hua? Mere paas kuch aur zarurat hai?",
+      "latency_sec": 13.74
+    },
+    {
+      "prompt": "pata nahi bas mood off hai.",
+      "response": "Arre Boss, tension mat lo 😄. Mood off ho toh, kuch khaana hai? Ya phir kuch dekho, jaan bharo, ya phir mazaak karo? Mere paas kuch aur cheezein hain jo tumhe theek kar sake. Batao, kya zarurat hai?",
+      "latency_sec": 98.0
+    },
+    {
+      "prompt": "upar se coding bhi nahi ho rahi.",
+      "response": "Arre Boss, coding kyun nahi ho raha? Kuch aur zarurat hai? Ya phir bas samajh nahi aaya? Mere paas kuch aur cheezein hain jo tumhe theek kar sake. Batao, kya help chahiye? 😊",
+      "latency_sec": 86.36
+    },
+    {
+      "prompt": "tu bol kya karu?",
+      "response": "Boss, tumhari mood off hai, coding bhi nahi ho raha, toh kuch aur karo. Kuch dekho, mazaak karo, ya phir kuch khao. Mere paas kuch aur cheezein hain jo tumhe theek kar sake. Batao, kya zarurat hai? 😊",
+      "latency_sec": 112.06
+    },
+    {
+      "prompt": "haan ye sahi hai.",
+      "response": "Arre Boss, theek hai, ab kuch dekho ya mazaak karo. Mere paas kuch aur cheezein hain jo tumhe theek kar sake. Batao, kya zarurat hai? 😊",
+      "latency_sec": 134.36
+    },
+    {
+      "prompt": "waise kal mujhe website bhi banani hai.",
+      "response": "Arre Boss, website banane wala kaam hai, toh ab kuch dekho ya mazaak karo. Mere paas kuch aur cheezein hain jo tumhe theek kar sake. Batao, kya zarurat hai? 😊",
+      "latency_sec": 110.19
+    }
+  ]
+}

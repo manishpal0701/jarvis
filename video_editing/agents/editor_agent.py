@@ -1,33 +1,56 @@
-
 import os
 import time
-from video_editing.analyzers.video_analyzer import VideoAnalyzer
-from video_editing.analyzers.audio_analyzer import AudioAnalyzer
-from video_editing.software.premiere import PremiereProController
-from video_editing.software.capcut import CapCutController
-from video_editing.ai.story_engine import StoryEngine
-from video_editing.learning.style_profile import StyleLearningEngine
-from video_editing.trends.trend_intelligence import TrendIntelligenceEngine
-from video_editing.reverse_engineering.style_extractor import ReverseEngineeringEngine
-from video_editing.ai.reasoning_engine import ReasoningEngine
 from video_editing.utils.progress_streamer import ProgressStreamer
 import tkinter as tk
 from tkinter import filedialog
-import os
-import time
 
 class VideoEditorAgent:
     def __init__(self):
-        self.video_analyzer = VideoAnalyzer()
-        self.audio_analyzer = AudioAnalyzer()
-        self.story_engine = StoryEngine()
-        self.premiere = PremiereProController()
-        self.capcut = CapCutController()
-        self.learning_engine = StyleLearningEngine()
-        self.trend_engine = TrendIntelligenceEngine()
-        self.reverse_engine = ReverseEngineeringEngine()
-        self.reasoning = ReasoningEngine()
+        self._video_analyzer = None
+        self._audio_analyzer = None
+        self._story_engine = None
+        self._premiere = None
+        self._capcut = None
+        self._learning_engine = None
+        self._trend_engine = None
+        self._reverse_engine = None
+        self._reasoning = None
         self.interrupted = False
+
+    @property
+    def video_analyzer(self):
+        if self._video_analyzer is None:
+            from video_editing.analyzers.video_analyzer import VideoAnalyzer
+            self._video_analyzer = VideoAnalyzer()
+        return self._video_analyzer
+
+    @property
+    def audio_analyzer(self):
+        if self._audio_analyzer is None:
+            from video_editing.analyzers.audio_analyzer import AudioAnalyzer
+            self._audio_analyzer = AudioAnalyzer()
+        return self._audio_analyzer
+
+    @property
+    def story_engine(self):
+        if self._story_engine is None:
+            from video_editing.ai.story_engine import StoryEngine
+            self._story_engine = StoryEngine()
+        return self._story_engine
+
+    @property
+    def premiere(self):
+        if self._premiere is None:
+            from video_editing.software.premiere import PremiereProController
+            self._premiere = PremiereProController()
+        return self._premiere
+
+    @property
+    def capcut(self):
+        if self._capcut is None:
+            from video_editing.software.capcut import CapCutController
+            self._capcut = CapCutController()
+        return self._capcut
 
     def process(self, command, speak_f):
         self.streamer = ProgressStreamer(speak_f)

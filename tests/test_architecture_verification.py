@@ -38,7 +38,8 @@ class TestArchitectureVerification(unittest.TestCase):
             target_filename, lang, ext = self.assistant.detect_target_file(prompt, self.test_dir)
             _, protected_triggered = ProtectedFileValidator.protect(target_filename)
 
-            code, saved_path = self.assistant.generate_code(prompt, project_dir=self.test_dir)
+            res = self.assistant.generate_code(prompt, project_dir=self.test_dir)
+            code, saved_path = res[0], res[1]
 
             file_exists = os.path.isfile(saved_path)
             with open(saved_path, "r", encoding="utf-8") if file_exists else None as f:

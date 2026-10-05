@@ -11,23 +11,38 @@ class MemoryStore:
     """
     Thread-safe storage abstraction over persistent memory storage (JSON).
     Protects underlying file access and provides fast CRUD operations for memory records.
+    Cached per process so memory.json is loaded once during backend startup.
     """
+    _instances = {}
+    _class_lock = threading.Lock()
+
+    def __new__(cls, store_file: str = DEFAULT_STORE_FILE):
+        abs_path = os.path.abspath(store_file)
+        with cls._class_lock:
+            if abs_path not in cls._instances:
+                instance = super(MemoryStore, cls).__new__(cls)
+                instance._initialized = False
+                cls._instances[abs_path] = instance
+            return cls._instances[abs_path]
+
     def __init__(self, store_file: str = DEFAULT_STORE_FILE):
-        self.store_file = os.path.abspath(store_file)
-        self._lock = threading.Lock()
-        self._records = {}
-        self._dirty = False
-        self._load()
+        if getattr(self, "_initialized", False):
+            return
+        with self._class_lock:
+            if getattr(self, "_initialized", False):
+                return
+            self.store_file = os.path.abspath(store_file)
+            self._lock = threading.Lock()
+            self._records = {}
+            self._dirty = False
+            self._load()
+            self._initialized = True
 
     def _load(self):
         with self._lock:
-            print("\n[MEMORY INIT]")
-            print("Loading persistent memories...")
+            print("[MEMORY_INIT]\nstatus=READY", flush=True)
             if not os.path.exists(self.store_file):
                 self._records = {}
-                print("[MEMORY STORE]")
-                print("Loaded: 0")
-                print(f"Storage path: {os.path.abspath(self.store_file)}")
                 return
 
             try:
@@ -66,12 +81,8 @@ class MemoryStore:
                 else:
                     self._records = {}
             except Exception as e:
-                print(f"[MemoryStore] Warning: Failed to load store ({e}). Starting clean.")
+                print(f"[MemoryStore] Warning: Failed to load store ({e}). Starting clean.", flush=True)
                 self._records = {}
-
-            print("[MEMORY STORE]")
-            print(f"Loaded: {len(self._records)}")
-            print(f"Storage path: {os.path.abspath(self.store_file)}")
 
     def flush(self):
         """Flushes memory records to persistent file storage atomically under lock."""

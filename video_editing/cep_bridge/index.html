@@ -249,15 +249,110 @@
         });
       }
 
+      // ── Structured Response Format Helpers ──────────────────────────
+      function ensureBridgeLoaded() {
+        return new Promise(function(resolve) {
+          if (!cs || !cs.evalScript) return resolve(false);
+          cs.evalScript("typeof JarvisBridge === 'object' ? 'ok' : 'missing'", function(result) {
+            if (result === "ok") return resolve(true);
+            try {
+              var fs = require("fs");
+              var path = require("path");
+              var extPath = cs.getSystemPath(SystemPath.EXTENSION);
+              var jsxFile = path.join(extPath, "jsx", "bridge.jsx");
+              if (fs.existsSync(jsxFile)) {
+                var jsxContent = fs.readFileSync(jsxFile, "utf8");
+                cs.evalScript(jsxContent, function(res) {
+                  log("Dynamically loaded bridge.jsx into ExtendScript: " + res);
+                  resolve(true);
+                });
+                return;
+              }
+            } catch (e) {
+              log("ensureBridgeLoaded error: " + e.message);
+            }
+            resolve(false);
+          });
+        });
+      }
+
+      function sendStructuredOK(res, cmd, resultData) {
+        var body = JSON.stringify({
+          success: true,
+          command: cmd,
+          result: resultData,
+          error: null
+        });
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        });
+        res.end(body);
+      }
+
+      function sendStructuredErr(res, cmd, errCode, errMsg) {
+        var body = JSON.stringify({
+          success: false,
+          command: cmd,
+          result: null,
+          error: {
+            code: String(errCode || "COMMAND_FAILED"),
+            message: String(errMsg || "An error occurred")
+          }
+        });
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        });
+        res.end(body);
+      }
+
       function handleCommand(req, res) {
         readBody(req).then(function(payload) {
           var cmd  = payload.command || "";
           var args = payload.args || {};
 
+          // Command Allowlisting & Validation
+          var allowedCommands = [
+            "getProjectInfo", "getProjectItems", "createProject", "saveProject", "createSequence", "movePlayhead",
+            "createVideoTrack", "createAudioTrack", "importClip", "readTimeline",
+            "readTimelineDetailed", "placeClip", "insertClip", "overwriteClip",
+            "moveClip", "trimClip", "splitClip", "deleteClip", "placeVideoClip",
+            "placeAudioClip", "applyTransition", "setVisualEffect", "exportSequence", "diagnostic"
+          ];
+
+          if (allowedCommands.indexOf(cmd) === -1) {
+            return sendStructuredErr(res, cmd, "UNKNOWN_COMMAND", "Command '" + cmd + "' is not supported by Jarvis Bridge.");
+          }
+
+          // Parameter Validation
+          if (args.trackIndex !== undefined && args.trackIndex !== null) {
+            var ti = Number(args.trackIndex);
+            if (isNaN(ti) || ti < 0) {
+              return sendStructuredErr(res, cmd, "INVALID_TRACK_INDEX", "trackIndex must be a non-negative integer.");
+            }
+          }
+
+          if (args.timelinePos !== undefined && args.timelinePos !== null) {
+            if (Number(args.timelinePos) < 0) {
+              return sendStructuredErr(res, cmd, "INVALID_TIMESTAMP", "timelinePos cannot be negative.");
+            }
+          }
+
+          if (args.seconds !== undefined && args.seconds !== null) {
+            if (Number(args.seconds) < 0) {
+              return sendStructuredErr(res, cmd, "INVALID_TIMESTAMP", "seconds cannot be negative.");
+            }
+          }
+
           var jsxCall;
           switch (cmd) {
             case "createProject":
-              jsxCall = "JarvisBridge.createProject(" + JSON.stringify(args.name || "Jarvis_AI_Edit") + ")";
+              var safeProjPath = String(args.targetPath || args.path || "").replace(/\\/g, "/");
+              jsxCall = "JarvisBridge.createProject(" + JSON.stringify(args.name || "Jarvis_AI_Edit") + ", " + JSON.stringify(safeProjPath) + ")";
+              break;
+            case "saveProject":
+              jsxCall = "JarvisBridge.saveProject()";
               break;
             case "createSequence":
               jsxCall = "JarvisBridge.ensureSequence(" + JSON.stringify(args.name || "Master_Edit") + ")";
@@ -272,21 +367,109 @@
               jsxCall = "JarvisBridge.createAudioTrack()";
               break;
             case "importClip":
-              jsxCall = "JarvisBridge.importFiles(" + JSON.stringify(JSON.stringify([args.path])) + ")";
+              if (!args.path || typeof args.path !== "string") {
+                return sendStructuredErr(res, cmd, "INVALID_ARGUMENT", "importClip requires a valid string 'path'.");
+              }
+              var safeImportPath = String(args.path).replace(/\\/g, "/");
+              jsxCall = "JarvisBridge.importFiles(" + JSON.stringify(JSON.stringify([safeImportPath])) + ")";
               break;
             case "readTimeline":
               jsxCall = "JarvisBridge.readTimeline()";
               break;
+            case "readTimelineDetailed":
+              jsxCall = "JarvisBridge.readTimelineDetailed()";
+              break;
             case "placeClip":
+            case "placeVideoClip":
               jsxCall = "JarvisBridge.placeClipOnTimeline(" +
-                          JSON.stringify(args.clipPath) + ", " +
-                          Number(args.timelinePos || 0) + ")";
+                          JSON.stringify(args.clipPath || args.path || "") + ", " +
+                          Number(args.inPoint || 0) + ", " +
+                          Number(args.outPoint || 0) + ", " +
+                          Number(args.timelinePos || 0) + ", " +
+                          Number(args.trackIndex || 0) + ")";
+              break;
+            case "placeAudioClip":
+              jsxCall = "JarvisBridge.placeAudioClipOnTimeline(" +
+                          JSON.stringify(args.clipPath || args.path || "") + ", " +
+                          Number(args.inPoint || 0) + ", " +
+                          Number(args.outPoint || 0) + ", " +
+                          Number(args.timelinePos || 0) + ", " +
+                          Number(args.trackIndex || 0) + ")";
+              break;
+            case "insertClip":
+              jsxCall = "JarvisBridge.insertClipOnTimeline(" +
+                          JSON.stringify(args.clipPath || args.path || "") + ", " +
+                          Number(args.inPoint || 0) + ", " +
+                          Number(args.outPoint || 0) + ", " +
+                          Number(args.timelinePos || 0) + ", " +
+                          Number(args.trackIndex || 0) + ")";
+              break;
+            case "overwriteClip":
+              jsxCall = "JarvisBridge.overwriteClipOnTimeline(" +
+                          JSON.stringify(args.clipPath || args.path || "") + ", " +
+                          Number(args.inPoint || 0) + ", " +
+                          Number(args.outPoint || 0) + ", " +
+                          Number(args.timelinePos || 0) + ", " +
+                          Number(args.trackIndex || 0) + ")";
+              break;
+            case "moveClip":
+              jsxCall = "JarvisBridge.moveClipOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          Number(args.newPos || args.timelinePos || 0) + ")";
+              break;
+            case "trimClip":
+              jsxCall = "JarvisBridge.trimClipOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          (args.inTime !== undefined && args.inTime !== null ? Number(args.inTime) : "null") + ", " +
+                          (args.outTime !== undefined && args.outTime !== null ? Number(args.outTime) : "null") + ")";
+              break;
+            case "splitClip":
+              jsxCall = "JarvisBridge.splitClipOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          Number(args.splitTime || 0) + ")";
+              break;
+            case "deleteClip":
+              jsxCall = "JarvisBridge.deleteClipOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          (args.ripple ? "true" : "false") + ")";
+              break;
+            case "applyTransition":
+              jsxCall = "JarvisBridge.applyTransitionOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          JSON.stringify(args.transitionType || "cut") + ", " +
+                          Number(args.duration || 1.0) + ")";
+              break;
+            case "setVisualEffect":
+              jsxCall = "JarvisBridge.setVisualEffectOnTimeline(" +
+                          JSON.stringify(args.trackType || "video") + ", " +
+                          Number(args.trackIndex || 0) + ", " +
+                          Number(args.clipIndex || 0) + ", " +
+                          JSON.stringify(args.effectName || "") + ", " +
+                          Number(args.value || 0) + ")";
+              break;
+            case "exportSequence":
+              jsxCall = "JarvisBridge.exportSequenceOnTimeline(" +
+                          JSON.stringify(args.outputPath || args.path || "") + ", " +
+                          JSON.stringify(args.presetPath || "") + ", " +
+                          Number(args.workAreaType || 0) + ")";
               break;
             case "getProjectInfo":
               jsxCall = "JarvisBridge.getProjectInfo()";
               break;
+            case "getProjectItems":
+              jsxCall = "JarvisBridge.getProjectItems()";
+              break;
             case "diagnostic":
-              // Minimal diagnostic: check app, typeof JarvisBridge, host name
               jsxCall = "JSON.stringify({" +
                 "typeofApp: typeof app," +
                 "appName: (typeof app !== 'undefined' && app.name) ? app.name : 'unknown'," +
@@ -294,26 +477,31 @@
                 "bridgeOk: typeof JarvisBridge === 'object'" +
               "})";
               break;
-            default:
-              return jsonErr(res, 400, "Unknown command: " + cmd);
           }
 
           _evalCount++;
           _lastEvalTime = new Date().toISOString();
 
-          cs.evalScript(jsxCall, function(result) {
-            if (result === "EvalScript error." || result === null || result === undefined) {
-              jsonErr(res, 500, "ExtendScript command '" + cmd + "' returned error. bridge.jsx may not be loaded.");
-              return;
-            }
-            res.writeHead(200, {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+          ensureBridgeLoaded().then(function() {
+            cs.evalScript(jsxCall, function(result) {
+              if (result === "EvalScript error." || result === null || result === undefined) {
+                return sendStructuredErr(res, cmd, "EXTENDSCRIPT_ERROR", "ExtendScript command '" + cmd + "' returned error: " + result);
+              }
+              try {
+                var parsed = JSON.parse(result);
+                if (typeof parsed === "object" && parsed !== null) {
+                  if (parsed.ok === false) {
+                    return sendStructuredErr(res, cmd, "EXECUTION_FAILED", parsed.error || "ExtendScript execution failed");
+                  }
+                  var innerRes = (parsed.result !== undefined) ? parsed.result : parsed;
+                  return sendStructuredOK(res, cmd, innerRes);
+                }
+              } catch (_) {}
+              sendStructuredOK(res, cmd, result);
             });
-            res.end(result);
           });
         }).catch(function(e) {
-          jsonErr(res, 400, e.message);
+          sendStructuredErr(res, "UNKNOWN", "INVALID_REQUEST", e.message);
         });
       }
 

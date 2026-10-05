@@ -8,7 +8,7 @@ def get_logger(name: str = "JarvisSpeech") -> logging.Logger:
         if os.environ.get("DEBUG") == "1":
             logger.setLevel(logging.DEBUG)
         else:
-            logger.setLevel(logging.WARNING)
+            logger.setLevel(logging.INFO)
             
         formatter = logging.Formatter(
             "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",

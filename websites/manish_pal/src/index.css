@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mouse-x: 0.5;
+  --mouse-y: 0.5;
+  --scroll-progress: 0;
+  --section-active: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: #030712;
+  color: #ffffff;
+  font-family: "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* True 3D & Spatial Perspective Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-1200 {
+  perspective: 1200px;
+}
+.perspective-2000 {
+  perspective: 2000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* 7 Spatial Depth Layer System (DEPTH 0 to DEPTH 6) */
+.depth-0, .depth-layer-bg {
+  transform: translateZ(-250px) scale(1.25);
+  z-index: 0;
+}
+.depth-1, .depth-layer-atmosphere {
+  transform: translateZ(-150px) scale(1.15);
+  z-index: 1;
+}
+.depth-2, .depth-layer-geometry {
+  transform: translateZ(-80px) scale(1.08);
+  z-index: 2;
+}
+.depth-3, .depth-layer-object {
+  transform: translateZ(0px);
+  z-index: 3;
+}
+.depth-4, .depth-layer-ui {
+  transform: translateZ(40px);
+  z-index: 4;
+}
+.depth-5, .depth-layer-fg {
+  transform: translateZ(90px);
+  z-index: 5;
+}
+.depth-6, .depth-layer-cta {
+  transform: translateZ(140px);
+  z-index: 6;
+}
+
+/* Interactive Parallax & Tilt */
+.card-3d-tilt {
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  transform-style: preserve-3d;
+}
+.card-3d-tilt:hover {
+  transform: translateY(-8px) rotateX(6deg) rotateY(-6deg) translateZ(20px);
+  box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.25);
+}
+
+/* Glassmorphism & Atmospheric Lighting */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.glass-card {
+  background: rgba(30, 41, 59, 0.55);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.spatial-glass-panel {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+.glow-cyan {
+  box-shadow: 0 0 35px rgba(6, 182, 212, 0.4);
+}
+.glow-cyan-spatial {
+  filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.5));
+}
+.glow-amber-spatial {
+  filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.5));
+}
+
+/* Spatial Grids & Mesh Backgrounds */
+.bg-spatial-grid {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+.bg-dots-pattern {
+  background-image: radial-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.bg-cyber-radial {
+  background: radial-gradient(circle at 50% 30%, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.8) 50%, rgba(3, 7, 18, 1) 100%);
+}
+
+/* Keyframe Animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(2deg); }
+}
+.animate-float-slow {
+  animation: floatSlow 7s ease-in-out infinite;
+}
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-rotate-slow {
+  animation: rotateSlow 25s linear infinite;
+}
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+}
+.animate-orbit {
+  animation: orbit 18s linear infinite;
+}
+@keyframes breathingGlow {
+  0%, 100% { opacity: 0.35; transform: scale(1); filter: blur(40px); }
+  50% { opacity: 0.75; transform: scale(1.15); filter: blur(55px); }
+}
+.animate-breathing-glow {
+  animation: breathingGlow 5s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

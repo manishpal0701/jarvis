@@ -6,8 +6,8 @@ VOICES = {
         "male": "en-IN-PrabhatNeural",
     },
     "en-US": {
-        "female": "en-US-AvaNeural",
-        "male": "en-US-AndrewNeural",
+        "female": "en-IN-NeerjaExpressiveNeural",
+        "male": "en-IN-PrabhatNeural",
     },
     "en-GB": {
         "female": "en-GB-LibbyNeural",
@@ -21,22 +21,22 @@ VOICES = {
 
 PERSONALITY_VOICES = {
     "Professional": {
-        "en-US": "en-US-AvaNeural",
+        "en-US": "en-IN-NeerjaExpressiveNeural",
         "en-IN": "en-IN-NeerjaNeural",
         "hi-IN": "hi-IN-SwaraNeural",
     },
     "Friendly": {
-        "en-US": "en-US-AriaNeural",
+        "en-US": "en-IN-NeerjaExpressiveNeural",
         "en-IN": "en-IN-NeerjaExpressiveNeural",
         "hi-IN": "hi-IN-SwaraNeural",
     },
     "Serious": {
-        "en-US": "en-US-GuyNeural",
+        "en-US": "en-IN-PrabhatNeural",
         "en-IN": "en-IN-PrabhatNeural",
         "hi-IN": "hi-IN-MadhurNeural",
     },
     "Assistant": {
-        "en-US": "en-US-AvaNeural",
+        "en-US": "en-IN-NeerjaExpressiveNeural",
         "en-IN": "en-IN-NeerjaExpressiveNeural",
         "hi-IN": "hi-IN-SwaraNeural",
     }

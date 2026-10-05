@@ -22,6 +22,12 @@ class CodeValidator:
     ]
 
     @classmethod
+    def extract_clean_code(cls, full_text: str, language: str = "tsx") -> str:
+        """Extracts clean source code using CodeParser without markdown fences."""
+        from tools.coding.code_parser import CodeParser
+        return CodeParser.extract_code(full_text)
+
+    @classmethod
     def validate(cls, code: str, language: str) -> tuple[bool, str]:
         if not code or not code.strip():
             return False, "Generated code is empty."
@@ -97,6 +103,21 @@ class CodeValidator:
         for ph in forbidden_placeholders:
             if ph in lower_c:
                 return False, f"Invalid TSX: Contains generic developer placeholder text '{ph}'. Replace with realistic, contextual content."
+
+        # 4. Malformed Numeric Token Dump & SVG Coordinate Stream Check
+        lines = [line.strip() for line in code_str.split("\n") if line.strip()]
+        numeric_pattern = re.compile(r"^[\d\s\.\,\-]+$")
+        numeric_lines_count = sum(1 for line in lines if numeric_pattern.match(line) and len(line) > 5)
+        if len(lines) > 0 and (numeric_lines_count / len(lines)) > 0.25:
+            return False, "Invalid TSX: Malformed output detected (dominated by raw numeric sequences)."
+
+        # Unclosed Markdown Fence Check
+        if code_str.count("```") % 2 != 0:
+            return False, "Invalid TSX: Unclosed markdown fence detected."
+
+        # Numeric coordinate dump without JSX elements
+        if re.search(r"(\d+\.\d+[\s\.\,\-]+\d+\.\d+){3,}", code_str) and not ("<" in code_str and ">" in code_str):
+            return False, "Invalid TSX: Malformed numeric garbage stream without JSX structure."
 
         if not ("export default" in code_str or "export function" in code_str or "export const" in code_str or "return" in code_str):
             return False, "Invalid TSX: Missing React export or render return statement."
@@ -242,9 +263,15 @@ class CodeValidator:
 
         if brief and hasattr(brief, 'required_sections') and brief.required_sections:
             missing_sections = []
+            section_synonyms = {
+                "specialmenu": ["menu", "dishes", "signature", "items", "categories"],
+                "aboutus": ["about", "story", "heritage", "profile", "legacy"],
+                "location&contact": ["location", "contact", "hours", "reservation", "visit"]
+            }
             for sec in brief.required_sections:
                 sec_kw = sec.lower().replace(" ", "").replace("banner", "").replace("section", "")
-                if sec_kw and sec_kw not in content_lower:
+                syns = section_synonyms.get(sec_kw, [sec_kw])
+                if not any(s in content_lower for s in syns):
                     missing_sections.append(sec)
             if len(missing_sections) > len(brief.required_sections) // 2:
                 return False, f"Missing requested sections in UI components: {', '.join(missing_sections)}"
@@ -354,4 +381,80 @@ class CodeValidator:
             fp = os.path.join(output_dir, pfile)
             if not os.path.exists(fp):
                 return False, f"Missing planned project file: {pfile}"
+        return True, ""
+
+    @classmethod
+    def validate_generation_integrity(cls, output_dir: str, plan: any = None) -> tuple[bool, str]:
+        """
+        Generation Integrity Check (Requirement 8):
+        Verifies that all planned/required project files exist, file sizes > 0,
+        source files contain valid non-empty TSX/CSS/HTML content,
+        and component imports in App.tsx resolve to exported symbols in component files.
+        """
+        if not os.path.exists(output_dir):
+            return False, "[GENERATION_INTEGRITY_ERROR]: Output directory does not exist."
+
+        # 1. Critical project infrastructure files check
+        required_infras = ["package.json", "tsconfig.json", "vite.config.ts", "index.html", "src/main.tsx", "src/App.tsx", "src/index.css"]
+        for rel_f in required_infras:
+            full_fp = os.path.join(output_dir, rel_f)
+            if not os.path.exists(full_fp):
+                return False, f"[GENERATION_INTEGRITY_ERROR]: Required file '{rel_f}' is missing from project."
+            if os.path.getsize(full_fp) == 0:
+                return False, f"[GENERATION_INTEGRITY_ERROR]: File '{rel_f}' is empty (0 bytes / 0 lines)."
+
+        # 2. Components directory & non-empty check
+        comp_dir = os.path.join(output_dir, "src", "components")
+        if not os.path.exists(comp_dir):
+            return False, "[GENERATION_INTEGRITY_ERROR]: 'src/components' directory missing."
+
+        comp_files = [f for f in os.listdir(comp_dir) if f.endswith((".tsx", ".ts", ".jsx", ".js"))]
+        if not comp_files:
+            return False, "[GENERATION_INTEGRITY_ERROR]: No component files generated in 'src/components'."
+
+        for cf in comp_files:
+            cfp = os.path.join(comp_dir, cf)
+            if os.path.getsize(cfp) == 0:
+                return False, f"[GENERATION_INTEGRITY_ERROR]: Component file 'src/components/{cf}' is empty (0 bytes)."
+
+        # 3. Import Resolution & Export Alignment Check in App.tsx
+        app_path = os.path.join(output_dir, "src", "App.tsx")
+        try:
+            with open(app_path, "r", encoding="utf-8") as f:
+                app_content = f.read()
+        except Exception as e:
+            return False, f"[GENERATION_INTEGRITY_ERROR]: Unable to read src/App.tsx: {e}"
+
+        import_stmt_pattern = re.compile(r"import\s+\{\s*([^}]+)\s*\}\s+from\s+['\"](?:\./components/|@/components/)([^'\"]+)['\"]")
+        for match in import_stmt_pattern.findall(app_content):
+            imported_symbols = [s.strip() for s in match[0].split(",") if s.strip()]
+            comp_mod_name = match[1].replace(".tsx", "").replace(".ts", "")
+            comp_file_path = os.path.join(comp_dir, f"{comp_mod_name}.tsx")
+
+            if not os.path.exists(comp_file_path):
+                return False, f"[GENERATION_INTEGRITY_ERROR]: App.tsx imports from missing component module 'src/components/{comp_mod_name}.tsx'."
+
+            try:
+                with open(comp_file_path, "r", encoding="utf-8") as cf:
+                    comp_code = cf.read()
+            except Exception as e:
+                return False, f"[GENERATION_INTEGRITY_ERROR]: Unable to read 'src/components/{comp_mod_name}.tsx': {e}"
+
+            for sym in imported_symbols:
+                export_pattern = re.compile(rf"\bexport\s+(?:const|function|class|var|type|interface)\s+{sym}\b|\bexport\s+default\s+{sym}\b|\bexport\s+{{\s*{sym}\b|\bexport\s+const\s+{sym}\s*=")
+                if not export_pattern.search(comp_code):
+                    # Auto-align export if component exported under another symbol
+                    alias_match = re.search(r"\bexport\s+const\s+([A-Za-z0-9_]+)\s*:\s*React\.FC|\bexport\s+const\s+([A-Za-z0-9_]+)\s*=", comp_code)
+                    if alias_match:
+                        found_export = alias_match.group(1) or alias_match.group(2)
+                        if found_export and found_export != sym:
+                            comp_code = comp_code.rstrip() + f"\n\nexport const {sym} = {found_export};\n"
+                            with open(comp_file_path, "w", encoding="utf-8") as cf_out:
+                                cf_out.write(comp_code)
+                            print(f"[EXPORT_ALIGNMENT_FIX]: Appended 'export const {sym} = {found_export};' to {comp_mod_name}.tsx", flush=True)
+                        else:
+                            return False, f"[GENERATION_INTEGRITY_ERROR]: '{sym}' is not exported by 'src/components/{comp_mod_name}.tsx'."
+                    else:
+                        return False, f"[GENERATION_INTEGRITY_ERROR]: '{sym}' is not exported by 'src/components/{comp_mod_name}.tsx'."
+
         return True, ""

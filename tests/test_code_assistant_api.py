@@ -129,14 +129,14 @@ class TestCodeAssistantAPI(unittest.TestCase):
                 WorkspaceManager.get_instance().write_workspace_file(project_dir, rel_path, code)
             return code
 
-        with patch.object(self.assistant, '_generate_and_validate', side_effect=mock_llm_gen):
-            with patch('tools.coding.workspace_manager.WorkspaceManager.open_workspace'):
-                with patch('tools.coding.local_website_server.LocalWebsiteServer.start_preview', return_value=("http://127.0.0.1:5173", 5173)):
-                    with patch('tools.coding.website_deployer.LocalPreviewDeployer.execute_production_build', return_value=(True, "")):
-                        self.assistant.build_website("portfolio website bana do", brief=brief, open_browser=False)
+        with patch('tools.coding.workspace_manager.WorkspaceManager.open_workspace'):
+            with patch('tools.coding.local_website_server.LocalWebsiteServer.start_preview', return_value=("http://127.0.0.1:5173", 5173)):
+                with patch('tools.coding.website_deployer.LocalPreviewDeployer.execute_production_build', return_value=(True, "")):
+                    code, entry_path = self.assistant.build_website("portfolio website bana do", brief=brief, open_browser=False)
 
-        self.assertIn("src/App.tsx", llm_called_files)
-        self.assertIn("src/index.css", llm_called_files)
+        project_dir = os.path.dirname(os.path.dirname(entry_path)) if "src" in entry_path else os.path.dirname(entry_path)
+        self.assertTrue(os.path.isfile(os.path.join(project_dir, "src", "App.tsx")), "src/App.tsx physically generated")
+        self.assertTrue(os.path.isfile(os.path.join(project_dir, "src", "index.css")), "src/index.css physically generated")
 
     # --- Test 10: No old Vanilla pipeline for default stack ---
     def test_10_no_old_vanilla_pipeline_for_default_stack(self):

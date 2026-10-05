@@ -69,7 +69,7 @@ class MemoryRetriever:
             print("Matches: None")
             return []
 
-        query_terms = [t for t in re.findall(r"\w+", query.lower()) if len(t) > 2 and t not in COMMON_STOPWORDS]
+        query_terms = [t for t in re.findall(r"\w+", query.lower()) if len(t) >= 2 and t not in COMMON_STOPWORDS]
         if not query_terms:
             print("Matches: None")
             return []
@@ -98,7 +98,11 @@ class MemoryRetriever:
             return []
         p_lower = project_name.lower()
         records = self.store.query_records(
-            lambda r: r.get("type") == "project" or (r.get("project") and r.get("project").lower() == p_lower)
+            lambda r: r.get("type") == "project" and (
+                (r.get("project") and r.get("project").lower() == p_lower) or
+                (r.get("metadata", {}).get("project_name", "").lower() == p_lower) or
+                p_lower in r.get("content", "").lower()
+            )
         )
         records.sort(key=lambda r: r.get("created_at", ""), reverse=True)
         return records

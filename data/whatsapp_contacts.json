@@ -1,0 +1,50 @@
+[
+  {
+    "contact_id": "cnt_000",
+    "display_name": "Rishabh",
+    "phone_number_masked": "+91******7766",
+    "raw_phone_unmasked": "+919899887766"
+  },
+  {
+    "contact_id": "cnt_001",
+    "display_name": "Rahul Sharma",
+    "phone_number_masked": "+91******3210",
+    "raw_phone_unmasked": "+919876543210"
+  },
+  {
+    "contact_id": "cnt_002",
+    "display_name": "Rahul Verma",
+    "phone_number_masked": "+91******5678",
+    "raw_phone_unmasked": "+919812345678"
+  },
+  {
+    "contact_id": "cnt_003",
+    "display_name": "Mom",
+    "phone_number_masked": "+91******6655",
+    "raw_phone_unmasked": "+919988776655"
+  },
+  {
+    "contact_id": "cnt_004",
+    "display_name": "John Doe",
+    "phone_number_masked": "+14******2671",
+    "raw_phone_unmasked": "+14155552671"
+  },
+  {
+    "contact_id": "cnt_005",
+    "display_name": "Alex",
+    "phone_number_masked": "+14******9988",
+    "raw_phone_unmasked": "+14155559988"
+  },
+  {
+    "contact_id": "cnt_006",
+    "display_name": "Vanshu",
+    "phone_number_masked": "+91******0112",
+    "raw_phone_unmasked": "+919876500112"
+  },
+  {
+    "contact_id": "cnt_007",
+    "display_name": "Mittar",
+    "phone_number_masked": "+91******0113",
+    "raw_phone_unmasked": "+919876500113"
+  }
+]

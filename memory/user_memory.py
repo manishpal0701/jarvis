@@ -7,7 +7,7 @@ class UserMemory:
         self.writer = writer
         self.retriever = retriever
 
-    def set_preference(self, key: str, value: str, importance: float = 0.9) -> tuple[str | None, str]:
+    def set_preference(self, key: str, value: str, importance: float = 1.0) -> tuple[str | None, str]:
         """Sets a user preference in memory."""
         content = f"User preference: {key} = {value}"
         return self.writer.write(
@@ -18,6 +18,7 @@ class UserMemory:
             tags=["user_preference", key.lower()],
             metadata={"preference_key": key, "preference_value": value}
         )
+
 
     def get_user_memories(self) -> list[dict]:
         """Retrieves all stored user memories and preferences."""
